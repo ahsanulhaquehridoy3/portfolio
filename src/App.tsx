@@ -39,38 +39,49 @@ const UPWORK = 'https://www.upwork.com/freelancers/ahsanulgoogleads';
 const FIVERR = 'https://www.fiverr.com/s/bd1mmo1?utm_source=CopyLink_Mobile';
 const EMAIL = 'hridoy410103@gmail.com';
 
+function useScrollRevealObserver() {
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const elements = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
+
+    if (!elements.length) return;
+    if (prefersReducedMotion) {
+      elements.forEach((el) => el.classList.add('reveal-visible'));
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      (entries, obs) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add('reveal-visible');
+          obs.unobserve(entry.target);
+        });
+      },
+      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' },
+    );
+
+    elements.forEach((el) => observer.observe(el));
+    return () => observer.disconnect();
+  }, []);
+}
+
 // ─── Logo ──────────────────────────────────────────────────────────────────
 
 function HridoyLogo({ size = 40 }: { size?: number }) {
   return (
-    <svg
-      width={size}
-      height={size}
-      viewBox="0 0 40 40"
-      fill="none"
-      xmlns="http://www.w3.org/2000/svg"
-      aria-label="Google Ads Expert logo"
+    <div
+      style={{ width: size, height: size }}
+      className="overflow-hidden rounded-full border border-white/20 bg-slate-950 shadow-lg"
+      aria-label="Ahsanul profile logo"
     >
-      {/* Background */}
-      <rect width="40" height="40" rx="10" fill="#0f172a" />
-
-      {/* Grid lines */}
-      <line x1="8" y1="20" x2="32" y2="20" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-      <line x1="14" y1="10" x2="14" y2="30" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-      <line x1="20" y1="10" x2="20" y2="30" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-      <line x1="26" y1="10" x2="26" y2="30" stroke="rgba(255,255,255,0.06)" strokeWidth="0.5" />
-
-      {/* Rising bars - Google colors */}
-      <rect x="10" y="20" width="4" height="8" rx="1" fill="#4285F4" />
-      <rect x="16" y="14" width="4" height="14" rx="1" fill="#34A853" />
-      <rect x="22" y="18" width="4" height="10" rx="1" fill="#FBBC05" />
-      <rect x="28" y="10" width="4" height="18" rx="1" fill="#EA4335" />
-
-      {/* H letter overlay */}
-      <rect x="12" y="12" width="3" height="16" rx="1" fill="white" fillOpacity="0.95" />
-      <rect x="25" y="12" width="3" height="16" rx="1" fill="white" fillOpacity="0.95" />
-      <rect x="12" y="18.5" width="16" height="3" rx="1" fill="white" fillOpacity="0.95" />
-    </svg>
+      <img
+        src="/image.png"
+        alt="Ahsanul Haque Hridoy"
+        className="h-full w-full object-cover"
+      />
+    </div>
   );
 }
 
@@ -83,18 +94,7 @@ function HridoyWordmark({ className = '' }: { className?: string }) {
           className="font-display font-extrabold tracking-tight text-white"
           style={{ fontSize: '1.1rem', letterSpacing: '-0.02em' }}
         >
-          Hridoy
-        </span>
-        <span
-          className="flex items-center gap-1 font-semibold"
-          style={{ fontSize: '0.55rem', letterSpacing: '0.12em' }}
-        >
-          <span className="text-blue-400">Google</span>
-          <span className="text-slate-500">·</span>
-          <span className="text-green-400">Meta</span>
-          <span className="text-slate-500">·</span>
-          <span className="text-amber-400">LinkedIn</span>
-          <span className="text-slate-500 ml-1">Ads</span>
+          Ahsanul
         </span>
       </div>
     </div>
@@ -111,14 +111,12 @@ const stats = [
 ];
 
 const platforms = [
-  { name: 'Google Ads', icon: Search, color: 'from-blue-500 to-blue-700' },
-  { name: 'Meta Ads', icon: Megaphone, color: 'from-blue-600 to-indigo-700' },
-  { name: 'LinkedIn Ads', icon: Briefcase, color: 'from-sky-600 to-blue-800' },
-  { name: 'Performance Max', icon: Zap, color: 'from-amber-500 to-orange-600' },
-  { name: 'Shopping Ads', icon: ShoppingBag, color: 'from-emerald-500 to-teal-700' },
-  { name: 'YouTube Ads', icon: Youtube, color: 'from-red-500 to-rose-700' },
-  { name: 'TikTok Ads', icon: Sparkles, color: 'from-pink-500 to-fuchsia-700' },
-  { name: 'X (Twitter) Ads', icon: Send, color: 'from-slate-700 to-slate-900' },
+  { name: 'Google Ads', logo: '/logos/google-ads.svg', color: 'from-blue-500 to-sky-600' },
+  { name: 'Meta Ads', logo: '/logos/meta-ads.svg', color: 'from-sky-500 to-blue-600' },
+  { name: 'LinkedIn Ads', logo: '/logos/linkedin-ads.svg', color: 'from-cyan-500 to-blue-700' },
+  { name: 'Microsoft Ads', logo: '/logos/microsoft-ads.svg', color: 'from-orange-500 to-red-600' },
+  { name: 'Shopping Ads', logo: '/logos/shopping-ads.svg', color: 'from-emerald-500 to-teal-600' },
+  { name: 'YouTube Ads', logo: '/logos/youtube-ads.svg', color: 'from-red-500 to-rose-600' },
 ];
 
 const services = [
@@ -355,7 +353,7 @@ const faqs = [
 
 // ─── Hooks ─────────────────────────────────────────────────────────────────
 
-function useReveal<T extends HTMLElement>() {
+function useReveal<T extends HTMLElement>(direction: 'left' | 'right' | 'up' = 'up') {
   const ref = useRef<T>(null);
   const [shown, setShown] = useState(false);
   useEffect(() => {
@@ -368,7 +366,14 @@ function useReveal<T extends HTMLElement>() {
     io.observe(el);
     return () => io.disconnect();
   }, []);
-  return { ref, shown };
+
+  const hiddenClass = direction === 'left'
+    ? '-translate-x-12'
+    : direction === 'right'
+    ? 'translate-x-12'
+    : 'translate-y-6';
+
+  return { ref, shown, hiddenClass };
 }
 
 // ─── Header ────────────────────────────────────────────────────────────────
@@ -448,20 +453,19 @@ function Hero() {
       <div className="absolute -left-40 top-32 h-96 w-96 rounded-full bg-brand-800/20 blur-3xl" />
 
       <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 md:grid-cols-2">
-        <div className="animate-rise">
-          <span className="inline-flex items-center gap-2 rounded-full border border-brand-400/40 bg-brand-500/10 px-3.5 py-1.5 text-xs font-semibold text-brand-300 backdrop-blur">
-            <Sparkles className="h-3.5 w-3.5" />
+        <div className="reveal reveal-left">
+          <span className="reveal reveal-up reveal-delay-100 inline-flex items-center gap-2 rounded-full border border-brand-400/40 bg-brand-500/10 px-3.5 py-1.5 text-xs font-semibold text-brand-300 backdrop-blur">
+            <Sparkles className="h-3.5 w-5" />
             Google · Meta · LinkedIn Ads Expert
           </span>
-
-          <h1 className="mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white text-balance sm:text-5xl md:text-6xl">
+          <h1 className="reveal reveal-up reveal-delay-150 mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white text-balance sm:text-5xl md:text-6xl">
             Ads that drive{' '}
             <span className="bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent">
               real business growth.
             </span>
           </h1>
 
-          <p className="mt-5 max-w-xl text-lg leading-relaxed text-slate-400">
+            <p className="reveal reveal-up reveal-delay-200 mt-5 max-w-xl text-lg leading-relaxed text-slate-400">
             I am <strong className="font-semibold text-white">Ahsanul Haque Hridoy</strong> — a
             certified paid media specialist with 4+ years managing millions in
             ad spend across Google, Meta and LinkedIn. I build campaigns that
@@ -469,11 +473,11 @@ function Hero() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a href="#contact" className="group inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
+            <a href="#contact" className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
               Get a custom strategy
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
-            <a href="#work" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10">
+            <a href="#work" className="reveal reveal-up reveal-delay-300 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10">
               View my work
             </a>
           </div>
@@ -495,7 +499,7 @@ function Hero() {
         </div>
 
         {/* Portrait */}
-        <div className="relative flex justify-center">
+        <div className="relative flex justify-center reveal reveal-right reveal-zoom">
           <div className="relative w-full max-w-sm">
             <div className="absolute -inset-3 rounded-[2.5rem] bg-gradient-to-br from-brand-500/40 to-accent-500/30 blur-2xl" />
             <div className="relative overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl">
@@ -508,17 +512,17 @@ function Hero() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-brand-950/80 via-brand-900/25 to-transparent" />
                 <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <div className="rounded-2xl border border-white/20 bg-white/10 p-4 backdrop-blur-md">
+                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)]">
                     <p className="font-display text-base font-bold text-white">Ahsanul Haque Hridoy</p>
-                    <p className="mt-0.5 text-xs text-brand-300">Paid Media Expert · 4+ Years · Certified</p>
+                    <p className="mt-0.5 text-xs text-slate-100">Paid Media Expert · 4+ years · Google & Facebook certified</p>
                   </div>
                 </div>
               </div>
             </div>
 
-            <div className="absolute -left-6 top-8 hidden rounded-2xl border border-white/20 bg-white/15 p-3.5 backdrop-blur sm:block animate-floaty">
+            <div className="absolute -left-6 top-8 hidden rounded-2xl border border-white/10 bg-slate-950/30 p-3.5 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)] sm:block animate-floaty">
               <div className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-emerald-500/25 text-emerald-200">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-800/80 text-white shadow-inner shadow-black/20">
                   <ArrowUpRight className="h-5 w-5" />
                 </span>
                 <div>
@@ -528,9 +532,9 @@ function Hero() {
               </div>
             </div>
 
-            <div className="absolute -right-6 top-1/2 hidden -translate-y-1/2 rounded-2xl border border-white/20 bg-white/15 p-3.5 backdrop-blur sm:block animate-floaty" style={{ animationDelay: '1.5s' }}>
+            <div className="absolute -right-6 top-1/2 hidden -translate-y-1/2 rounded-2xl border border-white/10 bg-slate-950/30 p-3.5 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)] sm:block animate-floaty" style={{ animationDelay: '1.5s' }}>
               <div className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-brand-500/25 text-brand-200">
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-800/80 text-white shadow-inner shadow-black/20">
                   <TrendingUp className="h-5 w-5" />
                 </span>
                 <div>
@@ -540,9 +544,9 @@ function Hero() {
               </div>
             </div>
 
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-brand-400/30 bg-brand-500/15 px-4 py-2 backdrop-blur">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-brand-300">
-                <CheckCircle2 className="h-3.5 w-3.5" />
+            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-slate-950/30 px-4 py-2 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)]">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-white">
+                <CheckCircle2 className="h-3.5 w-3.5 text-brand-300" />
                 Google & Facebook Certified
               </span>
             </div>
@@ -551,8 +555,8 @@ function Hero() {
       </div>
 
       <div className="relative z-10 mx-auto mt-20 grid max-w-6xl grid-cols-2 gap-4 px-5 md:grid-cols-4">
-        {stats.map((s) => (
-          <div key={s.label} className="rounded-2xl border border-white/15 bg-white/5 p-5 text-center backdrop-blur">
+        {stats.map((s, index) => (
+          <div key={s.label} className={`reveal reveal-scale reveal-delay-${(index + 1) * 100} rounded-2xl border border-white/15 bg-white/5 p-5 text-center backdrop-blur`}>
             <p className="font-display text-3xl font-extrabold text-brand-400">{s.value}</p>
             <p className="mt-1 text-sm text-slate-400">{s.label}</p>
           </div>
@@ -567,17 +571,17 @@ function Hero() {
 function PlatformsMarquee() {
   const row = [...platforms, ...platforms];
   return (
-    <section className="border-y border-white/10 bg-slate-950 py-8">
+    <section className="border-y border-white/10 bg-slate-950 py-8 reveal reveal-up">
       <div className="mx-auto max-w-6xl px-5">
-        <p className="mb-5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500">
+        <p className="mb-5 text-center text-xs font-semibold uppercase tracking-wider text-slate-500 reveal reveal-up reveal-delay-100">
           Platforms I run & optimise
         </p>
         <div className="relative overflow-hidden mask-fade-x">
           <div className="flex w-max animate-marquee gap-6">
             {row.map((p, i) => (
-              <span key={i} className="flex items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2.5">
-                <span className={`grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br ${p.color} text-white`}>
-                  <p.icon className="h-4 w-4" />
+              <span key={i} className="reveal reveal-scale flex items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2.5" style={{ transitionDelay: `${(i % platforms.length) * 0.05}s` }}>
+                <span className={`grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br ${p.color}`}>
+                  <img src={p.logo} alt={`${p.name} logo`} className="h-5 w-5 object-contain" />
                 </span>
                 <span className="font-display text-sm font-bold text-slate-300">{p.name}</span>
               </span>
@@ -592,48 +596,41 @@ function PlatformsMarquee() {
 // ─── About ─────────────────────────────────────────────────────────────────
 
 function About() {
-  const { ref, shown } = useReveal<HTMLDivElement>();
   return (
     <section id="about" className="py-20 md:py-28">
-      <div
-        ref={ref}
-        className={`mx-auto max-w-6xl px-5 transition-all duration-700 ${
-          shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-        }`}
-      >
-        <div className="overflow-hidden rounded-3xl border border-white/15 bg-white/5 backdrop-blur md:grid md:grid-cols-2">
-          <div className="relative min-h-[400px] bg-slate-800 md:min-h-0">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="reveal reveal-up rounded-3xl border border-white/15 bg-white/5 backdrop-blur md:grid md:grid-cols-2">
+          <div className="reveal reveal-zoom relative min-h-[400px] bg-slate-800 md:min-h-0">
             <img
-              src="/image.png"
-              alt="Ahsanul Haque Hridoy"
+              src="/WhatsApp_Image_2026-07-02_at_11.43.33_PM.jpeg"
+              alt="Ahsanul Haque Hridoy portrait"
               className="h-full w-full object-cover object-center"
               loading="lazy"
             />
             <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-950/80 md:bg-gradient-to-t" />
-            <div className="absolute left-6 top-6"><HridoyLogo size={48} /></div>
             <a
               href={BEHANCE}
               target="_blank"
               rel="noopener noreferrer"
-              className="absolute bottom-6 left-6 flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/20"
+              className="absolute bottom-6 left-6 flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/20 reveal reveal-up reveal-delay-100"
             >
               View my portfolio <ExternalLink className="h-3 w-3" />
             </a>
           </div>
 
           <div className="p-8 md:p-10">
-            <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">About me</p>
-            <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white">
+            <p className="reveal reveal-up text-sm font-semibold uppercase tracking-wider text-brand-400 reveal-delay-100">About me</p>
+            <h2 className="reveal reveal-up reveal-delay-150 mt-2 font-display text-3xl font-extrabold tracking-tight text-white">
               Hi, I am Hridoy.
             </h2>
-            <p className="mt-4 leading-relaxed text-slate-400">
+            <p className="reveal reveal-up reveal-delay-200 mt-4 leading-relaxed text-slate-400">
               I am a Google Ads, Facebook Ads and LinkedIn Ads expert with over
               3 years of experience specialising in Search Ads, Performance Max,
               Shopping Ads, Carousel Ads, conversion tracking and Pixel setup. I
               create and manage campaigns that drive business growth and deliver
               measurable ROI.
             </p>
-            <p className="mt-3 leading-relaxed text-slate-400">
+            <p className="reveal reveal-up reveal-delay-250 mt-3 leading-relaxed text-slate-400">
               Previously I worked as an Ads Expert at BD Calling IT, managing 15
               clients and launching 40+ campaigns — with 11 repeat clients due
               to the results I delivered. I was also a Senior Executive at
@@ -643,8 +640,8 @@ function About() {
             </p>
 
             <div className="mt-6 space-y-4">
-              {experience.map((e) => (
-                <div key={e.role} className="rounded-2xl border border-white/10 bg-white/5 p-4">
+              {experience.map((e, index) => (
+                <div key={e.role} className={`reveal reveal-scale reveal-delay-${200 + index * 100} rounded-2xl border border-white/10 bg-white/5 p-4`}>
                   <div className="flex items-center justify-between">
                     <p className="font-display font-bold text-white">{e.role}</p>
                     <span className="rounded-full bg-brand-500/20 px-2.5 py-0.5 text-xs font-semibold text-brand-300">
@@ -664,10 +661,10 @@ function About() {
             </div>
 
             <div className="mt-6 flex flex-wrap gap-3">
-              <a href="#contact" className="inline-flex items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
+              <a href="#contact" className="reveal reveal-up reveal-delay-400 inline-flex items-center gap-2 rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
                 Work with me <ArrowRight className="h-4 w-4" />
               </a>
-              <a href={LINKEDIN} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10">
+              <a href={LINKEDIN} target="_blank" rel="noopener noreferrer" className="reveal reveal-up reveal-delay-450 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-5 py-2.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10">
                 LinkedIn <ExternalLink className="h-3.5 w-3.5" />
               </a>
             </div>
@@ -681,7 +678,7 @@ function About() {
 // ─── Services ──────────────────────────────────────────────────────────────
 
 function Services() {
-  const { ref, shown } = useReveal<HTMLDivElement>();
+  const { ref, shown, hiddenClass } = useReveal<HTMLDivElement>('right');
   return (
     <section id="services" className="relative isolate overflow-hidden bg-slate-950 py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -691,7 +688,7 @@ function Services() {
       <div
         ref={ref}
         className={`relative z-10 mx-auto max-w-6xl px-5 transition-all duration-700 ${
-          shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          shown ? 'opacity-100 translate-y-0 translate-x-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
         <div className="max-w-2xl">
@@ -704,6 +701,18 @@ function Services() {
             LinkedIn, X and TikTok — handled by one certified specialist
             accountable for your numbers.
           </p>
+
+          <a
+            href={WHATSAPP}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex items-center gap-3 rounded-full border border-emerald-500/25 bg-slate-950/80 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/10 transition hover:border-emerald-500/40 hover:bg-slate-900"
+          >
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-500/15 text-emerald-300">
+              <MessageCircle className="h-5 w-5" />
+            </span>
+            Contact me on WhatsApp
+          </a>
         </div>
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -730,7 +739,7 @@ function Services() {
 // ─── Case Studies / Work ───────────────────────────────────────────────────
 
 function Work() {
-  const { ref, shown } = useReveal<HTMLDivElement>();
+  const { ref, shown, hiddenClass } = useReveal<HTMLDivElement>('left');
   const [activeTab, setActiveTab] = useState(campaignProjects[0].id);
   const active = campaignProjects.find((p) => p.id === activeTab)!;
 
@@ -743,7 +752,7 @@ function Work() {
       <div
         ref={ref}
         className={`relative z-10 mx-auto max-w-6xl px-5 transition-all duration-700 ${
-          shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          shown ? 'opacity-100 translate-y-0 translate-x-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
         {/* Section header */}
@@ -890,13 +899,13 @@ function Work() {
 // ─── Why Me ────────────────────────────────────────────────────────────────
 
 function WhyMe() {
-  const { ref, shown } = useReveal<HTMLDivElement>();
+  const { ref, shown, hiddenClass } = useReveal<HTMLDivElement>('right');
   return (
     <section id="why" className="py-20 md:py-28">
       <div
         ref={ref}
         className={`mx-auto max-w-6xl px-5 transition-all duration-700 ${
-          shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          shown ? 'opacity-100 translate-x-0 translate-y-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
         <div className="max-w-2xl">
@@ -908,6 +917,18 @@ function WhyMe() {
             I bring corporate-level structure, multi-platform expertise and a
             holistic view of your entire funnel — not just the ad click.
           </p>
+
+          <a
+            href={WHATSAPP}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:border-white/20 hover:bg-white/10"
+          >
+            <span className="grid h-9 w-9 place-items-center rounded-full bg-slate-900/80 text-brand-400">
+              <MessageCircle className="h-5 w-5" />
+            </span>
+            Quick WhatsApp consultation
+          </a>
         </div>
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -974,7 +995,7 @@ function Industries() {
 // ─── Reviews ───────────────────────────────────────────────────────────────
 
 function Reviews() {
-  const { ref, shown } = useReveal<HTMLDivElement>();
+  const { ref, shown, hiddenClass } = useReveal<HTMLDivElement>('right');
   return (
     <section id="reviews" className="relative isolate overflow-hidden py-20 md:py-28">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -984,7 +1005,7 @@ function Reviews() {
       <div
         ref={ref}
         className={`relative z-10 mx-auto max-w-6xl px-5 transition-all duration-700 ${
-          shown ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+          shown ? 'opacity-100 translate-y-0 translate-x-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
         <div className="max-w-2xl">
@@ -1254,6 +1275,8 @@ function Footer() {
 // ─── App ───────────────────────────────────────────────────────────────────
 
 export default function App() {
+  useScrollRevealObserver();
+
   return (
     <div className="min-h-screen bg-slate-950">
       <Header />

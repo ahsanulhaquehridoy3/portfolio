@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" role="img" aria-label="Hridoy logo">
+  <defs>
+    <linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#5B8DEF"/>
+      <stop offset="100%" stop-color="#35C2A6"/>
+    </linearGradient>
+  </defs>
+  <rect width="120" height="120" rx="30" fill="#0F172A"/>
+  <circle cx="60" cy="60" r="46" fill="url(#grad)" opacity="0.95"/>
+  <path d="M48 38H72C79.1797 38 85 43.8203 85 51V69C85 76.1797 79.1797 82 72 82H48" fill="#fff"/>
+  <path d="M52 38V82" stroke="#0F172A" stroke-width="8" stroke-linecap="round"/>
+</svg>

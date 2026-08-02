@@ -38,4 +38,76 @@
     -webkit-mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
     mask-image: linear-gradient(to right, transparent, black 10%, black 90%, transparent);
   }
+  .reveal {
+    opacity: 0;
+    transform: translateY(40px);
+    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    will-change: opacity, transform;
+  }
+  .reveal-left {
+    transform: translateX(-48px);
+  }
+  .reveal-right {
+    transform: translateX(48px);
+  }
+  .reveal-up {
+    transform: translateY(48px);
+  }
+  .reveal-scale {
+    transform: translateY(24px) scale(0.97);
+  }
+  .reveal-zoom {
+    opacity: 0;
+    transform: scale(1.06);
+  }
+  .reveal-visible {
+    opacity: 1;
+    transform: translateX(0) translateY(0) scale(1);
+  }
+  .reveal-visible.reveal-zoom {
+    opacity: 1;
+    transform: scale(1);
+  }
+  .reveal-delay-100 {
+    transition-delay: 0.1s;
+  }
+  .reveal-delay-200 {
+    transition-delay: 0.2s;
+  }
+  .reveal-delay-300 {
+    transition-delay: 0.3s;
+  }
+  .reveal-delay-400 {
+    transition-delay: 0.4s;
+  }
+  .reveal-delay-500 {
+    transition-delay: 0.5s;
+  }
+  .reveal-delay-600 {
+    transition-delay: 0.6s;
+  }
+  .reveal-delay-700 {
+    transition-delay: 0.7s;
+  }
+  .reveal-delay-800 {
+    transition-delay: 0.8s;
+  }
+  .reveal-delay-900 {
+    transition-delay: 0.9s;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    html:focus-within {
+      scroll-behavior: auto;
+    }
+    .reveal,
+    .reveal-left,
+    .reveal-right,
+    .reveal-up,
+    .reveal-zoom,
+    .reveal-scale {
+      transition: none !important;
+      transform: none !important;
+      opacity: 1 !important;
+    }
+  }
 }
