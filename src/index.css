@@ -40,25 +40,25 @@
   }
   .reveal {
     opacity: 0;
-    transform: translateY(40px);
-    transition: opacity 0.8s ease-out, transform 0.8s ease-out;
+    transform: translateY(32px);
+    transition: opacity 0.75s cubic-bezier(0.16, 1, 0.3, 1), transform 0.75s cubic-bezier(0.16, 1, 0.3, 1);
     will-change: opacity, transform;
   }
   .reveal-left {
-    transform: translateX(-48px);
+    transform: translateX(-36px);
   }
   .reveal-right {
-    transform: translateX(48px);
+    transform: translateX(36px);
   }
   .reveal-up {
-    transform: translateY(48px);
+    transform: translateY(28px);
   }
   .reveal-scale {
-    transform: translateY(24px) scale(0.97);
+    transform: translateY(18px) scale(0.98);
   }
   .reveal-zoom {
     opacity: 0;
-    transform: scale(1.06);
+    transform: scale(1.04);
   }
   .reveal-visible {
     opacity: 1;

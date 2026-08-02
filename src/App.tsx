@@ -43,11 +43,44 @@ function useScrollRevealObserver() {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const elements = Array.from(document.querySelectorAll<HTMLElement>('.reveal'));
+    const selector = [
+      '.reveal',
+      'section h1',
+      'section h2',
+      'section h3',
+      'section h4',
+      'section p',
+      'section a',
+      'section button',
+      'section li',
+      'section article',
+    ].join(',');
 
+    const elements = Array.from(document.querySelectorAll<HTMLElement>(selector));
     if (!elements.length) return;
+
+    const autoRevealElements = elements.filter((el, index) => {
+      if (!el.classList.contains('reveal')) {
+        el.classList.add('reveal');
+      }
+      if (
+        !el.classList.contains('reveal-left') &&
+        !el.classList.contains('reveal-right') &&
+        !el.classList.contains('reveal-up') &&
+        !el.classList.contains('reveal-scale') &&
+        !el.classList.contains('reveal-zoom')
+      ) {
+        el.classList.add(index % 2 === 0 ? 'reveal-left' : 'reveal-right');
+      }
+      const hasDelayClass = Array.from(el.classList).some((className) => className.startsWith('reveal-delay-'));
+      if (!hasDelayClass) {
+        el.style.transitionDelay = `${(index % 6) * 0.08}s`;
+      }
+      return true;
+    });
+
     if (prefersReducedMotion) {
-      elements.forEach((el) => el.classList.add('reveal-visible'));
+      autoRevealElements.forEach((el) => el.classList.add('reveal-visible'));
       return;
     }
 
@@ -59,10 +92,10 @@ function useScrollRevealObserver() {
           obs.unobserve(entry.target);
         });
       },
-      { threshold: 0.12, rootMargin: '0px 0px -10% 0px' },
+      { threshold: 0.12, rootMargin: '0px 0px -15% 0px' },
     );
 
-    elements.forEach((el) => observer.observe(el));
+    autoRevealElements.forEach((el) => observer.observe(el));
     return () => observer.disconnect();
   }, []);
 }
@@ -621,7 +654,7 @@ function About() {
           <div className="p-8 md:p-10">
             <p className="reveal reveal-up text-sm font-semibold uppercase tracking-wider text-brand-400 reveal-delay-100">About me</p>
             <h2 className="reveal reveal-up reveal-delay-150 mt-2 font-display text-3xl font-extrabold tracking-tight text-white">
-              Hi, I am Hridoy.
+              Hi, I am Ahsanul Haque Hridoy.
             </h2>
             <p className="reveal reveal-up reveal-delay-200 mt-4 leading-relaxed text-slate-400">
               I am a Google Ads, Facebook Ads and LinkedIn Ads expert with over
@@ -691,7 +724,25 @@ function Services() {
           shown ? 'opacity-100 translate-y-0 translate-x-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
-        <div className="max-w-2xl">
+        <div className="mt-10 flex justify-center">
+          <a
+            href={WHATSAPP}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-5 text-lg font-bold text-white shadow-xl transition hover:from-emerald-600 hover:to-emerald-700 hover:shadow-emerald-500/30"
+          >
+            <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/20">
+              <MessageCircle className="h-7 w-7" />
+            </span>
+            <div className="text-left">
+              <span className="block text-2xl">Chat on WhatsApp</span>
+              <span className="block text-sm font-normal text-emerald-100">+880 1785 778 309</span>
+            </div>
+            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+          </a>
+        </div>
+
+        <div className="max-w-2xl mx-auto pt-10">
           <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">What I do</p>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             Full-stack ad management, end to end.
@@ -701,18 +752,6 @@ function Services() {
             LinkedIn, X and TikTok — handled by one certified specialist
             accountable for your numbers.
           </p>
-
-          <a
-            href={WHATSAPP}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-3 rounded-full border border-emerald-500/25 bg-slate-950/80 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/10 transition hover:border-emerald-500/40 hover:bg-slate-900"
-          >
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-emerald-500/15 text-emerald-300">
-              <MessageCircle className="h-5 w-5" />
-            </span>
-            Contact me on WhatsApp
-          </a>
         </div>
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -908,7 +947,25 @@ function WhyMe() {
           shown ? 'opacity-100 translate-x-0 translate-y-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
-        <div className="max-w-2xl">
+        <div className="mt-10 flex justify-center">
+          <a
+            href={WHATSAPP}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-5 text-lg font-bold text-white shadow-xl transition hover:from-emerald-600 hover:to-emerald-700 hover:shadow-emerald-500/30"
+          >
+            <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/20">
+              <MessageCircle className="h-7 w-7" />
+            </span>
+            <div className="text-left">
+              <span className="block text-2xl">Chat on WhatsApp</span>
+              <span className="block text-sm font-normal text-emerald-100">+880 1785 778 309</span>
+            </div>
+            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+          </a>
+        </div>
+
+        <div className="max-w-2xl mx-auto pt-10">
           <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Why work with me</p>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
             More than an ad buyer.
@@ -917,18 +974,6 @@ function WhyMe() {
             I bring corporate-level structure, multi-platform expertise and a
             holistic view of your entire funnel — not just the ad click.
           </p>
-
-          <a
-            href={WHATSAPP}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="mt-8 inline-flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-black/20 transition hover:border-white/20 hover:bg-white/10"
-          >
-            <span className="grid h-9 w-9 place-items-center rounded-full bg-slate-900/80 text-brand-400">
-              <MessageCircle className="h-5 w-5" />
-            </span>
-            Quick WhatsApp consultation
-          </a>
         </div>
 
         <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
@@ -1091,21 +1136,23 @@ function Contact() {
         </p>
 
         {/* Primary WhatsApp CTA */}
-        <a
-          href={WHATSAPP}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="group mx-auto mt-10 inline-flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-5 text-lg font-bold text-white shadow-xl transition hover:from-emerald-600 hover:to-emerald-700 hover:shadow-emerald-500/30"
-        >
-          <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/20">
-            <MessageCircle className="h-7 w-7" />
-          </span>
-          <div className="text-left">
-            <span className="block text-2xl">Chat on WhatsApp</span>
-            <span className="block text-sm font-normal text-emerald-100">+880 1785 778 309</span>
-          </div>
-          <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
-        </a>
+        <div className="mt-10 flex justify-center">
+          <a
+            href={WHATSAPP}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="group inline-flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-5 text-lg font-bold text-white shadow-xl transition hover:from-emerald-600 hover:to-emerald-700 hover:shadow-emerald-500/30"
+          >
+            <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/20">
+              <MessageCircle className="h-7 w-7" />
+            </span>
+            <div className="text-left">
+              <span className="block text-2xl">Chat on WhatsApp</span>
+              <span className="block text-sm font-normal text-emerald-100">+880 1785 778 309</span>
+            </div>
+            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+          </a>
+        </div>
 
         <p className="mt-6 text-sm text-slate-500">Available for quick response 9 AM — 10 PM (BDT)</p>
 
