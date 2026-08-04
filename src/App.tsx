@@ -144,12 +144,11 @@ const stats = [
 ];
 
 const platforms = [
-  { name: 'Google Ads', logo: '/logos/google-ads.svg', color: 'from-blue-500 to-sky-600' },
-  { name: 'Meta Ads', logo: '/logos/meta-ads.svg', color: 'from-sky-500 to-blue-600' },
-  { name: 'LinkedIn Ads', logo: '/logos/linkedin-ads.svg', color: 'from-cyan-500 to-blue-700' },
-  { name: 'Microsoft Ads', logo: '/logos/microsoft-ads.svg', color: 'from-orange-500 to-red-600' },
-  { name: 'Shopping Ads', logo: '/logos/shopping-ads.svg', color: 'from-emerald-500 to-teal-600' },
-  { name: 'YouTube Ads', logo: '/logos/youtube-ads.svg', color: 'from-red-500 to-rose-600' },
+  { name: 'Google Ads', logo: '/logos/google-adds.png', color: 'from-blue-500 to-sky-600' },
+  { name: 'Meta Ads', logo: '/logos/meta.png', color: 'from-sky-500 to-blue-600' },
+  { name: 'LinkedIn Ads', logo: '/logos/linkedin.png', color: 'from-cyan-500 to-blue-700' },
+  { name: 'Shopping Ads', logo: '/logos/google shopping.png', color: 'from-emerald-500 to-teal-600' },
+  { name: 'YouTube Ads', logo: '/logos/youtube.png', color: 'from-red-500 to-rose-600' },
 ];
 
 const services = [
@@ -612,9 +611,9 @@ function PlatformsMarquee() {
         <div className="relative overflow-hidden mask-fade-x">
           <div className="flex w-max animate-marquee gap-6">
             {row.map((p, i) => (
-              <span key={i} className="reveal reveal-scale flex items-center gap-2 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2.5" style={{ transitionDelay: `${(i % platforms.length) * 0.05}s` }}>
-                <span className={`grid h-7 w-7 place-items-center rounded-lg bg-gradient-to-br ${p.color}`}>
-                  <img src={p.logo} alt={`${p.name} logo`} className="h-5 w-5 object-contain" />
+              <span key={i} className="reveal reveal-scale flex items-center gap-3 whitespace-nowrap rounded-xl border border-white/15 bg-white/5 px-4 py-2.5" style={{ transitionDelay: `${(i % platforms.length) * 0.05}s` }}>
+                <span className="grid h-9 w-9 place-items-center rounded-lg bg-white/5">
+                  <img src={p.logo} alt={`${p.name} logo`} className="h-7 w-7 object-contain" />
                 </span>
                 <span className="font-display text-sm font-bold text-slate-300">{p.name}</span>
               </span>
@@ -796,13 +795,13 @@ function Work() {
       >
         {/* Section header */}
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Selected work</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Selected Case Studies</p>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Real campaigns. Real results.
+            Case studies with measurable outcomes.
           </h2>
           <p className="mt-3 text-slate-400">
-            Browse by platform and campaign type — each project includes dashboard
-            screenshots and key performance metrics.
+            Explore case studies by platform and campaign type. Each project includes
+            dashboard screenshots and clear performance metrics demonstrating impact.
           </p>
         </div>
 

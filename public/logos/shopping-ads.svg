@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" role="img" aria-label="Shopping Ads logo">
-  <rect x="2" y="2" width="20" height="20" rx="5" fill="#22C55E"/>
-  <path d="M7 8H17L15.2 16H8.8L7 8Z" fill="#fff"/>
-  <path d="M12 11.5L14.5 13.25L13.9 14.5L11 13.25L12 11.5Z" fill="#10B981"/>
-  <circle cx="9.3" cy="17.5" r="1" fill="#fff"/>
-  <circle cx="14.7" cy="17.5" r="1" fill="#fff"/>
-</svg>
