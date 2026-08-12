@@ -1,11 +1,10 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ChangeEvent, type FormEvent } from 'react';
 import {
   TrendingUp,
   BarChart3,
   Megaphone,
   Search,
   ShoppingBag,
-  Youtube,
   CheckCircle2,
   ChevronDown,
   Menu,
@@ -17,8 +16,6 @@ import {
   LineChart,
   Sparkles,
   Mail,
-  Phone,
-  Send,
   Quote,
   Target,
   ExternalLink,
@@ -39,7 +36,7 @@ const UPWORK = 'https://www.upwork.com/freelancers/ahsanulgoogleads';
 const FIVERR = 'https://www.fiverr.com/s/bd1mmo1?utm_source=CopyLink_Mobile';
 const EMAIL = 'hridoy410103@gmail.com';
 
-function useScrollRevealObserver() {
+function useScrollRevealObserver(pathname?: string) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -95,9 +92,213 @@ function useScrollRevealObserver() {
       { threshold: 0.12, rootMargin: '0px 0px -15% 0px' },
     );
 
-    autoRevealElements.forEach((el) => observer.observe(el));
+    autoRevealElements.forEach((el) => {
+      observer.observe(el);
+      const rect = el.getBoundingClientRect();
+      if (rect.top < window.innerHeight && rect.bottom > 0) {
+        el.classList.add('reveal-visible');
+        observer.unobserve(el);
+      }
+    });
     return () => observer.disconnect();
+  }, [pathname]);
+}
+
+const ADMIN_USERNAME = 'adminhridoy';
+const DEFAULT_ADMIN_PASSWORD = 'adminhridoy';
+const ADMIN_PASSWORD_STORAGE_KEY = 'adminPassword';
+const ADMIN_TOKEN_STORAGE_KEY = 'adminAuthToken';
+const PROJECTS_STORAGE_KEY = 'portfolioProjects';
+const SITE_CONTENT_STORAGE_KEY = 'portfolioSiteContent';
+const PROJECT_CATEGORIES = ['Google Ads', 'Meta Ads', 'SEO', 'E-commerce', 'Lead Generation'] as const;
+
+type ProjectCategory = (typeof PROJECT_CATEGORIES)[number];
+
+type SiteContent = {
+  hero: {
+    badge: string;
+    headline: string;
+    description: string;
+    ctaPrimary: string;
+    ctaSecondary: string;
+    image: string;
+    subtext: string;
+  };
+  about: {
+    sectionLabel: string;
+    title: string;
+    description: string;
+    ctaLabel: string;
+    ctaUrl: string;
+    image: string;
+  };
+  contact: {
+    headline: string;
+    description: string;
+    ctaLabel: string;
+  };
+};
+
+const DEFAULT_SITE_CONTENT: SiteContent = {
+  hero: {
+    badge: 'Google · Meta · LinkedIn Ads Expert',
+    headline: 'Ads that drive real business growth.',
+    description:
+      'I am Ahsanul Haque Hridoy — a certified paid media specialist with 4+ years managing millions in ad spend across Google, Meta and LinkedIn. I build campaigns that deliver measurable ROI, not just clicks.',
+    ctaPrimary: 'Get a custom strategy',
+    ctaSecondary: 'View my work',
+    image: '/WhatsApp_Image_2026-07-02_at_11.43.33_PM.jpeg',
+    subtext: '15+ repeat clients · Google & Facebook certified',
+  },
+  about: {
+    sectionLabel: 'About me',
+    title: 'Hi, I am Ahsanul Haque Hridoy.',
+    description:
+      'I am a Google Ads, Facebook Ads and LinkedIn Ads expert with over 3 years of experience specialising in Search Ads, Performance Max, Shopping Ads, Carousel Ads, conversion tracking and Pixel setup. I build ad strategies that improve lead quality and scale growth.',
+    ctaLabel: 'View my portfolio',
+    ctaUrl: BEHANCE,
+    image: '/WhatsApp_Image_2026-07-02_at_11.43.33_PM.jpeg',
+  },
+  contact: {
+    headline: 'Let’s build your next growth campaign.',
+    description: 'Reach out for custom ad strategies that work across Google, Meta, LinkedIn and more.',
+    ctaLabel: 'Start the conversation',
+  },
+};
+
+type Project = {
+  id: string;
+  title: string;
+  category: ProjectCategory | string;
+  description: string;
+  url?: string;
+  images: string[];
+  createdAt: string;
+  updatedAt: string;
+};
+
+function generateToken() {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+
+  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+}
+
+function loadProjects(): Project[] {
+  if (typeof window === 'undefined') return [];
+  const raw = window.localStorage.getItem(PROJECTS_STORAGE_KEY);
+  if (!raw) return [];
+
+  try {
+    const parsed = JSON.parse(raw) as any[];
+    return parsed.map((project) => ({
+      ...project,
+      images: Array.isArray(project.images)
+        ? project.images
+        : project.image
+        ? [project.image]
+        : [],
+      url: project.url || undefined,
+    })) as Project[];
+  } catch {
+    return [];
+  }
+}
+
+function saveProjects(projects: Project[]) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+}
+
+function loadSiteContent(): SiteContent {
+  if (typeof window === 'undefined') return DEFAULT_SITE_CONTENT;
+  const raw = window.localStorage.getItem(SITE_CONTENT_STORAGE_KEY);
+  if (!raw) return DEFAULT_SITE_CONTENT;
+
+  try {
+    const parsed = JSON.parse(raw) as Partial<SiteContent>;
+    const safe = <T extends string>(value: unknown, fallback: T): T =>
+      typeof value === 'string' && value.trim() ? (value as T) : fallback;
+
+    return {
+      hero: {
+        badge: safe(parsed.hero?.badge, DEFAULT_SITE_CONTENT.hero.badge),
+        headline: safe(parsed.hero?.headline, DEFAULT_SITE_CONTENT.hero.headline),
+        description: safe(parsed.hero?.description, DEFAULT_SITE_CONTENT.hero.description),
+        ctaPrimary: safe(parsed.hero?.ctaPrimary, DEFAULT_SITE_CONTENT.hero.ctaPrimary),
+        ctaSecondary: safe(parsed.hero?.ctaSecondary, DEFAULT_SITE_CONTENT.hero.ctaSecondary),
+        ctaUrl: safe(parsed.hero?.ctaUrl, DEFAULT_SITE_CONTENT.hero.ctaUrl),
+        image: safe(parsed.hero?.image, DEFAULT_SITE_CONTENT.hero.image),
+        subtext: safe(parsed.hero?.subtext, DEFAULT_SITE_CONTENT.hero.subtext),
+      },
+      about: {
+        sectionLabel: safe(parsed.about?.sectionLabel, DEFAULT_SITE_CONTENT.about.sectionLabel),
+        title: safe(parsed.about?.title, DEFAULT_SITE_CONTENT.about.title),
+        description: safe(parsed.about?.description, DEFAULT_SITE_CONTENT.about.description),
+        ctaLabel: safe(parsed.about?.ctaLabel, DEFAULT_SITE_CONTENT.about.ctaLabel),
+        ctaUrl: safe(parsed.about?.ctaUrl, DEFAULT_SITE_CONTENT.about.ctaUrl),
+        image: safe(parsed.about?.image, DEFAULT_SITE_CONTENT.about.image),
+      },
+      contact: {
+        headline: safe(parsed.contact?.headline, DEFAULT_SITE_CONTENT.contact.headline),
+        description: safe(parsed.contact?.description, DEFAULT_SITE_CONTENT.contact.description),
+        ctaLabel: safe(parsed.contact?.ctaLabel, DEFAULT_SITE_CONTENT.contact.ctaLabel),
+      },
+    };
+  } catch {
+    return DEFAULT_SITE_CONTENT;
+  }
+}
+
+function saveSiteContent(content: SiteContent) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(SITE_CONTENT_STORAGE_KEY, JSON.stringify(content));
+}
+
+
+function loadAdminPassword(): string {
+  if (typeof window === 'undefined') return DEFAULT_ADMIN_PASSWORD;
+  return window.localStorage.getItem(ADMIN_PASSWORD_STORAGE_KEY) || DEFAULT_ADMIN_PASSWORD;
+}
+
+function saveAdminPassword(password: string) {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(ADMIN_PASSWORD_STORAGE_KEY, password);
+}
+
+function isAdminAuthenticated() {
+  if (typeof window === 'undefined') return false;
+  return !!window.localStorage.getItem(ADMIN_TOKEN_STORAGE_KEY);
+}
+
+function loginAdmin() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.setItem(ADMIN_TOKEN_STORAGE_KEY, generateToken());
+}
+
+function logoutAdmin() {
+  if (typeof window === 'undefined') return;
+  window.localStorage.removeItem(ADMIN_TOKEN_STORAGE_KEY);
+}
+
+function navigateTo(path: string) {
+  if (typeof window === 'undefined') return;
+  window.history.pushState({ path }, '', path);
+  window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
+}
+
+function usePathname() {
+  const [pathname, setPathname] = useState(() => (typeof window === 'undefined' ? '/' : window.location.pathname || '/'));
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const handlePopstate = () => setPathname(window.location.pathname || '/');
+    window.addEventListener('popstate', handlePopstate);
+    return () => window.removeEventListener('popstate', handlePopstate);
   }, []);
+
+  return pathname;
 }
 
 // ─── Logo ──────────────────────────────────────────────────────────────────
@@ -184,6 +385,14 @@ const services = [
   },
 ];
 
+const featuredCaseStudyImages = [
+  '/files_10812615-2026-07-02T17-56-32-775Z-WhatsApp_Image_2026-07-02_at_11.52.20_PM_(1).jpeg',
+  '/files_10812615-2026-07-02T17-56-33-023Z-WhatsApp_Image_2026-07-02_at_11.52.20_PM_(2).jpeg',
+  '/files_10812615-2026-07-02T17-56-33-076Z-WhatsApp_Image_2026-07-02_at_11.52.21_PM.jpeg',
+  '/files_10812615-2026-07-02T17-56-33-076Z-WhatsApp_Image_2026-07-02_at_11.52.21_PM_(1).jpeg',
+  '/google-ads/lead-generation/WhatsApp_Image_2026-07-02_at_11.52.23_PM.jpeg',
+];
+
 const campaignProjects = [
   {
     id: 'google-lead',
@@ -192,16 +401,17 @@ const campaignProjects = [
     platform: 'Google Ads',
     platformColor: 'bg-blue-500/15 text-blue-300 border-blue-400/25',
     title: 'Google Ads Lead Generation Campaigns',
-    subtitle: '74 conversions in November — multi-campaign search strategy for B2B client LBS ANZ.',
-    desc: 'Managed 12 active Google Search campaigns for Leica Biosystems ANZ (LBS ANZ) — a B2B scientific equipment company. Structured with branded, generic and phrase-match ad groups, the campaigns delivered 74 conversions in November 2024 and 52 in October 2024 at an avg. CPC of $4.66 and $1.36 respectively.',
+    subtitle: 'May, June and July Google Ads performance across lead generation campaigns.',
+    desc: 'Managed 12 active Google Search campaigns for Leica Biosystems ANZ (LBS ANZ) — a B2B scientific equipment company. Structured with branded, generic and phrase-match ad groups, the campaigns delivered consistent month-to-month growth across May, June and July with efficient cost control.',
     metrics: [
-      { label: 'Nov conversions', value: '74' },
-      { label: 'Oct conversions', value: '52' },
-      { label: 'Nov avg. CPC', value: '$4.66' },
+      { label: 'May conversions', value: '52' },
+      { label: 'Jun conversions', value: '63' },
+      { label: 'Jul conversions', value: '74' },
       { label: 'Active campaigns', value: '12' },
     ],
     screenshots: [
       '/files_10812615-2026-07-02T17-56-32-775Z-WhatsApp_Image_2026-07-02_at_11.52.20_PM_(1).jpeg',
+      '/google-ads/lead-generation/WhatsApp_Image_2026-07-02_at_11.52.23_PM.jpeg',
     ],
     behance: 'https://www.behance.net/gallery/195719849/Google-Ads-Campaign-For-Lead-Generation-61-leads',
   },
@@ -241,7 +451,9 @@ const campaignProjects = [
       { label: 'Platform rating', value: 'High performing' },
     ],
     screenshots: [
+      '/logos/meta.png',
       '/google-ads/lead-generation/WhatsApp_Image_2026-07-02_at_11.52.23_PM.jpeg',
+      '/files_10812615-2026-07-02T17-56-33-076Z-WhatsApp_Image_2026-07-02_at_11.52.21_PM_(1).jpeg',
     ],
     behance: 'https://www.behance.net/gallery/184725033/google-ads-campaign-conversion-tracking-expert',
   },
@@ -450,6 +662,7 @@ function Header() {
           </a>
         </div>
         <button
+          type="button"
           onClick={() => setOpen((v) => !v)}
           className="grid h-10 w-10 place-items-center rounded-lg border border-white/20 text-white md:hidden"
           aria-label="Toggle menu"
@@ -477,9 +690,14 @@ function Header() {
 
 // ─── Hero ──────────────────────────────────────────────────────────────────
 
-function Hero() {
+function Hero({ content }: { content: SiteContent['hero'] }) {
+  const sectionBg = 'bg-slate-950';
+  const textColor = 'text-white';
+  const subText = 'text-slate-400';
+  const cardBg = 'bg-slate-950/40 border-white/20';
+
   return (
-    <section id="top" className="relative isolate overflow-hidden bg-slate-950 pt-28 pb-20 md:pt-36">
+    <section id="top" className={`relative isolate overflow-hidden ${sectionBg} pt-28 pb-20 md:pt-36`}>
       <div className="absolute inset-0 bg-grid-dark" />
       <div className="absolute -right-40 top-10 h-96 w-96 rounded-full bg-brand-600/25 blur-3xl" />
       <div className="absolute -left-40 top-32 h-96 w-96 rounded-full bg-brand-800/20 blur-3xl" />
@@ -488,29 +706,27 @@ function Hero() {
         <div className="reveal reveal-left">
           <span className="reveal reveal-up reveal-delay-100 inline-flex items-center gap-2 rounded-full border border-brand-400/40 bg-brand-500/10 px-3.5 py-1.5 text-xs font-semibold text-brand-300 backdrop-blur">
             <Sparkles className="h-3.5 w-5" />
-            Google · Meta · LinkedIn Ads Expert
+            {content.badge}
           </span>
-          <h1 className="reveal reveal-up reveal-delay-150 mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight text-white text-balance sm:text-5xl md:text-6xl">
-            Ads that drive{' '}
-            <span className="bg-gradient-to-r from-brand-400 to-accent-400 bg-clip-text text-transparent">
-              real business growth.
-            </span>
+          <h1 className={`reveal reveal-up reveal-delay-150 mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight ${textColor} text-balance sm:text-5xl md:text-6xl`}>
+            {content.headline.includes('real business growth') ? (
+              <>{content.headline}</>
+            ) : (
+              <>{content.headline}</>
+            )}
           </h1>
 
-            <p className="reveal reveal-up reveal-delay-200 mt-5 max-w-xl text-lg leading-relaxed text-slate-400">
-            I am <strong className="font-semibold text-white">Ahsanul Haque Hridoy</strong> — a
-            certified paid media specialist with 4+ years managing millions in
-            ad spend across Google, Meta and LinkedIn. I build campaigns that
-            deliver measurable ROI, not just clicks.
-          </p>
+            <p className={`reveal reveal-up reveal-delay-200 mt-5 max-w-xl text-lg leading-relaxed ${subText}`}>
+              {content.description}
+            </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <a href="#contact" className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
-              Get a custom strategy
+              {content.ctaPrimary}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
             <a href="#work" className="reveal reveal-up reveal-delay-300 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10">
-              View my work
+              {content.ctaSecondary}
             </a>
           </div>
 
@@ -627,9 +843,14 @@ function PlatformsMarquee() {
 
 // ─── About ─────────────────────────────────────────────────────────────────
 
-function About() {
+function About({ content }: { content: SiteContent['about'] }) {
+  const sectionBg = 'bg-transparent';
+  const cardBg = 'bg-white/5 border-white/15';
+  const textColor = 'text-white';
+  const subText = 'text-slate-400';
+
   return (
-    <section id="about" className="py-20 md:py-28">
+    <section id="about" className={`py-20 md:py-28 ${sectionBg}`}>
       <div className="mx-auto max-w-6xl px-5">
         <div className="reveal reveal-up rounded-3xl border border-white/15 bg-white/5 backdrop-blur md:grid md:grid-cols-2">
           <div className="reveal reveal-zoom relative min-h-[400px] bg-slate-800 md:min-h-0">
@@ -639,36 +860,25 @@ function About() {
               className="h-full w-full object-cover object-center"
               loading="lazy"
             />
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-950/80 md:bg-gradient-to-t" />
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent to-slate-950/40 md:bg-gradient-to-t" />
+            <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-slate-950/30 to-transparent" />
             <a
-              href={BEHANCE}
+              href={content.ctaUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="absolute bottom-6 left-6 flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white backdrop-blur transition hover:bg-white/20 reveal reveal-up reveal-delay-100"
             >
-              View my portfolio <ExternalLink className="h-3 w-3" />
+              {content.ctaLabel} <ExternalLink className="h-3 w-3" />
             </a>
           </div>
 
           <div className="p-8 md:p-10">
-            <p className="reveal reveal-up text-sm font-semibold uppercase tracking-wider text-brand-400 reveal-delay-100">About me</p>
-            <h2 className="reveal reveal-up reveal-delay-150 mt-2 font-display text-3xl font-extrabold tracking-tight text-white">
-              Hi, I am Ahsanul Haque Hridoy.
-            </h2>
-            <p className="reveal reveal-up reveal-delay-200 mt-4 leading-relaxed text-slate-400">
-              I am a Google Ads, Facebook Ads and LinkedIn Ads expert with over
-              3 years of experience specialising in Search Ads, Performance Max,
-              Shopping Ads, Carousel Ads, conversion tracking and Pixel setup. I
-              create and manage campaigns that drive business growth and deliver
-              measurable ROI.
-            </p>
-            <p className="reveal reveal-up reveal-delay-250 mt-3 leading-relaxed text-slate-400">
-              Previously I worked as an Ads Expert at BD Calling IT, managing 15
-              clients and launching 40+ campaigns — with 11 repeat clients due
-              to the results I delivered. I was also a Senior Executive at
-              PPC Rockers (ended June 2026), managing 5 clients and 10+
-              campaigns, with 4 repeat clients continuing because of strong
-              performance and ROI.
+<p className="reveal reveal-up text-sm font-semibold uppercase tracking-wider text-brand-400 reveal-delay-100">{content.sectionLabel}</p>
+          <h2 className="reveal reveal-up reveal-delay-150 mt-2 font-display text-3xl font-extrabold tracking-tight text-white">
+            {content.title}
+          </h2>
+          <p className="reveal reveal-up reveal-delay-200 mt-4 leading-relaxed text-slate-400">
+            {content.description}
             </p>
 
             <div className="mt-6 space-y-4">
@@ -776,10 +986,11 @@ function Services() {
 
 // ─── Case Studies / Work ───────────────────────────────────────────────────
 
-function Work() {
+function Work({ projects }: { projects: Project[] }) {
   const { ref, shown, hiddenClass } = useReveal<HTMLDivElement>('left');
-  const [activeTab, setActiveTab] = useState(campaignProjects[0].id);
-  const active = campaignProjects.find((p) => p.id === activeTab)!;
+  const [showAll, setShowAll] = useState(false);
+  const featuredProjects = projects.slice(0, 2);
+  const visibleProjects = showAll ? projects : featuredProjects;
 
   return (
     <section id="work" className="relative isolate overflow-hidden bg-slate-950 py-20 md:py-28">
@@ -793,144 +1004,843 @@ function Work() {
           shown ? 'opacity-100 translate-y-0 translate-x-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
-        {/* Section header */}
         <div className="max-w-2xl">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Selected Case Studies</p>
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Featured Projects</p>
           <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Case studies with measurable outcomes.
+            Real work, real results.
           </h2>
           <p className="mt-3 text-slate-400">
-            Explore case studies by platform and campaign type. Each project includes
-            dashboard screenshots and clear performance metrics demonstrating impact.
+            Explore the latest projects from the admin dashboard. Click any project to view its full details and image gallery.
           </p>
         </div>
 
-        {/* Tab pills */}
-        <div className="mt-10 flex flex-wrap gap-2">
-          {campaignProjects.map((p) => (
-            <button
-              key={p.id}
-              onClick={() => setActiveTab(p.id)}
-              className={`rounded-full px-4 py-2 text-sm font-semibold transition-all ${
-                activeTab === p.id
-                  ? `bg-gradient-to-r ${p.color} text-white shadow-lg`
-                  : 'border border-white/20 bg-white/5 text-slate-300 hover:border-white/40 hover:bg-white/10 hover:text-white'
-              }`}
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-
-        {/* Active project panel */}
-        <div className="mt-6 overflow-hidden rounded-3xl border border-white/15 bg-white/10 backdrop-blur-md">
-          {/* Panel header */}
-          <div className="border-b border-white/10 p-6 md:p-8">
-            <div className="flex flex-wrap items-start justify-between gap-4">
-              <div>
-                <span className={`inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold ${active.platformColor}`}>
-                  {active.platform}
-                </span>
-                <h3 className="mt-3 font-display text-2xl font-extrabold text-white md:text-3xl">
-                  {active.title}
-                </h3>
-                <p className="mt-1.5 font-medium text-slate-300">{active.subtitle}</p>
-              </div>
-              <a
-                href={active.behance}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex shrink-0 items-center gap-2 rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs font-semibold text-white transition hover:bg-white/20"
-              >
-                View on Behance <ExternalLink className="h-3 w-3" />
-              </a>
-            </div>
-
-            {/* Metrics row */}
-            <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-              {active.metrics.map((m) => (
-                <div key={m.label} className="rounded-2xl border border-white/10 bg-white/5 p-4 text-center">
-                  <p className="font-display text-xl font-extrabold text-white">{m.value}</p>
-                  <p className="mt-0.5 text-xs text-slate-400">{m.label}</p>
-                </div>
+        {projects.length > 0 ? (
+          <>
+            <div className="mt-12 grid gap-6 sm:grid-cols-2">
+              {visibleProjects.map((project) => (
+                <article
+                  key={project.id}
+                  className="group overflow-hidden rounded-3xl border border-white/10 bg-white/5 transition hover:-translate-y-1"
+                >
+                  <a
+                    href={`/project/${project.id}`}
+                    onClick={(event) => {
+                      event.preventDefault();
+                      navigateTo(`/project/${project.id}`);
+                    }}
+                    className="block h-full"
+                  >
+                    <div className="h-64 overflow-hidden bg-slate-900">
+                      {project.images.length > 0 ? (
+                        <img src={project.images[0]} alt={project.title} className="h-full w-full object-cover transition duration-500 group-hover:scale-105" />
+                      ) : (
+                        <div className="flex h-full items-center justify-center bg-slate-900 text-sm text-slate-400">
+                          No image available
+                        </div>
+                      )}
+                    </div>
+                    <div className="p-6">
+                      <span className="inline-flex rounded-full border border-white/15 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.2em] text-slate-300">
+                        {project.category}
+                      </span>
+                      <h3 className="mt-4 text-xl font-semibold text-white">{project.title}</h3>
+                      <p className="mt-3 text-sm leading-relaxed text-slate-400 line-clamp-3">{project.description}</p>
+                      <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-brand-300">
+                        <span>View details</span>
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </a>
+                </article>
               ))}
             </div>
+
+            {projects.length > 2 && (
+              <div className="mt-10 text-center">
+                <button
+                  type="button"
+                  onClick={() => setShowAll((current) => !current)}
+                  className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                >
+                  {showAll ? 'Show less' : 'See more'}
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </div>
+            )}
+          </>
+        ) : (
+          <div className="mt-12 rounded-3xl border border-white/10 bg-white/5 p-10 text-center">
+            <p className="text-lg font-semibold text-white">No projects uploaded yet.</p>
+            <p className="mt-3 text-slate-400">Use the admin dashboard to add new projects and publish them here.</p>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+
+function ProjectDetailsPage({
+  project,
+  onBack,
+}: {
+  project?: Project;
+  onBack: () => void;
+}) {
+  const [previewIndex, setPreviewIndex] = useState<number | null>(null);
+
+  const openPreview = (index: number) => setPreviewIndex(index);
+  const closePreview = () => setPreviewIndex(null);
+  const showPreviousImage = () => {
+    if (previewIndex === null || !project) return;
+    setPreviewIndex((previewIndex - 1 + project.images.length) % project.images.length);
+  };
+  const showNextImage = () => {
+    if (previewIndex === null || !project) return;
+    setPreviewIndex((previewIndex + 1) % project.images.length);
+  };
+
+  if (!project) {
+    return (
+      <div className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+        <div className="mx-auto max-w-4xl rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl">
+          <button
+            type="button"
+            onClick={onBack}
+            className="mb-6 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+          >
+            <ArrowRight className="h-4 w-4 rotate-180" />
+            Back to projects
+          </button>
+          <h1 className="text-3xl font-extrabold text-white">Project not found</h1>
+          <p className="mt-4 text-slate-400">This project may have been removed or the link is invalid.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <div className="mx-auto max-w-6xl space-y-10">
+        <button
+          type="button"
+          onClick={onBack}
+          className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+        >
+          <ArrowRight className="h-4 w-4 rotate-180" />
+          Back to projects
+        </button>
+
+        <div className="rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+            <div>
+              <p className="text-sm uppercase tracking-[0.24em] text-brand-400">{project.category}</p>
+              <h1 className="mt-3 text-4xl font-extrabold text-white">{project.title}</h1>
+              <p className="mt-4 max-w-3xl text-slate-300">{project.description}</p>
+            </div>
+            {project.url ? (
+              <a
+                href={project.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-2xl border border-brand-400/30 bg-brand-500/10 px-5 py-3 text-sm font-semibold text-brand-300 transition hover:bg-brand-500/20"
+              >
+                External project link
+                <ExternalLink className="h-4 w-4" />
+              </a>
+            ) : (
+              <span className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm text-slate-300">
+                No external URL provided
+              </span>
+            )}
           </div>
 
-          {/* Panel body */}
-          <div className="grid gap-0 md:grid-cols-2">
-            {/* Description */}
-            <div className="border-b border-white/10 p-6 md:border-b-0 md:border-r md:p-8">
-              <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Campaign overview</p>
-              <p className="mt-4 leading-relaxed text-slate-300">{active.desc}</p>
-
-              <div className="mt-6 space-y-2">
-                {[
-                  'Keyword research & competitor analysis',
-                  'Ad copy creation & A/B testing',
-                  'Audience & location targeting',
-                  'Bid strategy optimisation',
-                  'Conversion tracking & reporting',
-                ].map((item) => (
-                  <div key={item} className="flex items-center gap-2.5 text-sm text-slate-300">
-                    <CheckCircle2 className="h-4 w-4 shrink-0 text-brand-400" />
-                    {item}
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Screenshots */}
-            <div className="p-6 md:p-8">
-              <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">
-                Dashboard screenshots
-              </p>
-              {active.screenshots.length > 0 ? (
-                <div className="mt-4 space-y-3">
-                  {active.screenshots.map((src, i) => (
-                    <div key={i} className="overflow-hidden rounded-2xl border border-white/10 shadow-lg">
-                      <img
-                        src={src}
-                        alt={`${active.title} — campaign dashboard screenshot ${i + 1}`}
-                        className="w-full object-cover transition duration-300 hover:scale-[1.02]"
-                        loading="lazy"
-                      />
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="mt-4 flex flex-col items-center justify-center rounded-2xl border border-dashed border-white/15 bg-white/5 py-16 text-center">
-                  <BarChart3 className="h-10 w-10 text-slate-500" />
-                  <p className="mt-3 text-sm font-medium text-slate-300">Screenshots coming soon</p>
-                  <p className="mt-1 text-xs text-slate-400">Results available on Behance</p>
-                  <a
-                    href={active.behance}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="mt-4 inline-flex items-center gap-1.5 rounded-full border border-white/15 bg-white/5 px-4 py-2 text-xs font-semibold text-brand-300 transition hover:bg-white/10"
+          <div className="mt-10 space-y-6">
+            <div className="grid gap-4 sm:grid-cols-2">
+              {project.images.length > 0 ? (
+                project.images.map((image, index) => (
+                  <button
+                    key={index}
+                    type="button"
+                    onClick={() => openPreview(index)}
+                    className="overflow-hidden rounded-3xl focus-visible:ring-2 focus-visible:ring-brand-400"
                   >
-                    View full case study <ExternalLink className="h-3 w-3" />
-                  </a>
+                    <img
+                      src={image}
+                      alt={`${project.title} image ${index + 1}`}
+                      className="h-80 w-full object-cover transition duration-300 hover:scale-105"
+                    />
+                  </button>
+                ))
+              ) : (
+                <div className="flex h-80 items-center justify-center rounded-3xl bg-slate-900 text-slate-400">
+                  No images uploaded for this project.
                 </div>
               )}
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Bottom CTA */}
-        <div className="mt-6 flex justify-center">
-          <a
-            href={BEHANCE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+      {previewIndex !== null && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/95 p-6 backdrop-blur-sm">
+          <div className="relative w-full max-w-6xl">
+            <button
+              type="button"
+              onClick={closePreview}
+              className="absolute right-4 top-4 inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-black/60 px-4 py-2 text-sm font-semibold text-white transition hover:bg-black/80"
+            >
+              Close
+            </button>
+            <div className="overflow-hidden rounded-[2rem] bg-slate-950 shadow-2xl">
+              <img
+                src={project.images[previewIndex]}
+                alt={`${project.title} preview ${previewIndex + 1}`}
+                className="h-[70vh] w-full object-contain"
+              />
+            </div>
+            <div className="mt-4 flex items-center justify-between gap-4 text-sm text-slate-300 sm:gap-6">
+              <button
+                type="button"
+                onClick={showPreviousImage}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 font-semibold text-white transition hover:bg-white/10"
+              >
+                Previous
+              </button>
+              <p className="text-center text-sm text-slate-300">
+                Image {previewIndex + 1} of {project.images.length}
+              </p>
+              <button
+                type="button"
+                onClick={showNextImage}
+                className="inline-flex items-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2 font-semibold text-white transition hover:bg-white/10"
+              >
+                Next
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function AdminLoginPage({ onLogin, isAdmin, adminPassword }: { onLogin: () => void; isAdmin: boolean; adminPassword: string }) {
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (isAdmin) {
+      navigateTo('/admin/dashboard');
+    }
+  }, [isAdmin]);
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (username === ADMIN_USERNAME && password === adminPassword) {
+      setError('');
+      onLogin();
+      return;
+    }
+    setError('Invalid username or password.');
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 px-4 py-16 text-white">
+      <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
+        <h1 className="text-3xl font-extrabold text-white">Admin Login</h1>
+        <p className="mt-2 text-sm text-slate-400">Secure access to the portfolio admin dashboard.</p>
+
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-200">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+              autoComplete="username"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-200">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+              autoComplete="current-password"
+            />
+          </div>
+          {error && <p className="text-sm text-rose-400">{error}</p>}
+          <button
+            type="submit"
+            className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
           >
-            See full portfolio on Behance
-            <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
-          </a>
+            Sign in
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
+
+function AdminDashboardPage({
+  projects,
+  onSave,
+  onDelete,
+  onLogout,
+  isAdmin,
+  siteContent,
+  onSaveSiteContent,
+  adminPassword,
+  onAdminPasswordChange,
+}: {
+  projects: Project[];
+  onSave: (project: Project) => void;
+  onDelete: (id: string) => void;
+  onLogout: () => void;
+  isAdmin: boolean;
+  siteContent: SiteContent;
+  onSaveSiteContent: (content: SiteContent) => void;
+  adminPassword: string;
+  onAdminPasswordChange: (password: string) => void;
+}) {
+  const [editingProject, setEditingProject] = useState<Project | null>(null);
+  const [title, setTitle] = useState('');
+  const [category, setCategory] = useState<ProjectCategory>(PROJECT_CATEGORIES[0]);
+  const [description, setDescription] = useState('');
+  const [url, setUrl] = useState('');
+  const [images, setImages] = useState<string[]>([]);
+  const [message, setMessage] = useState('');
+  const [localContent, setLocalContent] = useState<SiteContent>(siteContent);
+  const [contentMessage, setContentMessage] = useState('');
+  const [passwordMessage, setPasswordMessage] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
+  useEffect(() => {
+    setLocalContent(siteContent);
+  }, [siteContent]);
+
+  useEffect(() => {
+    if (editingProject) {
+      setTitle(editingProject.title);
+      setCategory(editingProject.category as ProjectCategory);
+      setDescription(editingProject.description);
+      setUrl(editingProject.url || '');
+      setImages(editingProject.images || []);
+      setMessage('Editing project');
+      return;
+    }
+    setTitle('');
+    setCategory(PROJECT_CATEGORIES[0]);
+    setDescription('');
+    setUrl('');
+    setImages([]);
+    setMessage('');
+  }, [editingProject]);
+
+  const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (!files?.length) return;
+
+    const readers = Array.from(files).map((file) => {
+      return new Promise<string>((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          if (typeof reader.result === 'string') {
+            resolve(reader.result);
+          }
+        };
+        reader.readAsDataURL(file);
+      });
+    });
+
+    Promise.all(readers).then((results) => {
+      setImages((current) => [...current, ...results]);
+    });
+  };
+
+  const handleSiteImageChange = (section: 'hero' | 'about', event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        setLocalContent((prev) => ({
+          ...prev,
+          [section]: {
+            ...prev[section],
+            image: reader.result,
+          },
+        }));
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleLocalContentSave = () => {
+    onSaveSiteContent(localContent);
+    setContentMessage('Site content saved successfully.');
+    setTimeout(() => setContentMessage(''), 4000);
+  };
+
+  const handlePasswordSave = () => {
+    if (!newPassword.trim()) {
+      setPasswordMessage('Please enter a new password.');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordMessage('Passwords do not match.');
+      return;
+    }
+    onAdminPasswordChange(newPassword.trim());
+    setPasswordMessage('Admin password updated successfully.');
+    setNewPassword('');
+    setConfirmPassword('');
+    setTimeout(() => setPasswordMessage(''), 4000);
+  };
+
+  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!title.trim() || !description.trim() || images.length === 0) {
+      setMessage('Title, description, and at least one image are required.');
+      return;
+    }
+
+    const project: Project = {
+      id: editingProject?.id ?? generateToken(),
+      title: title.trim(),
+      category,
+      description: description.trim(),
+      url: url.trim() || undefined,
+      images,
+      createdAt: editingProject?.createdAt ?? new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+
+    onSave(project);
+    setEditingProject(null);
+    setMessage(editingProject ? 'Project updated successfully.' : 'Project added successfully.');
+  };
+
+  const handleEdit = (project: Project) => {
+    setEditingProject(project);
+  };
+
+  const handleCancelEdit = () => {
+    setEditingProject(null);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-950 px-4 py-10 text-white">
+      <div className="mx-auto max-w-6xl">
+        <div className="mb-8 flex flex-col gap-4 rounded-3xl border border-white/10 bg-white/5 p-6 shadow-xl sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-3xl font-extrabold">Admin Dashboard</h1>
+            <p className="mt-2 text-sm text-slate-400">Manage case studies and portfolio projects from a secure admin panel.</p>
+          </div>
+          <div className="flex flex-wrap gap-3">
+            <button
+              type="button"
+              onClick={() => navigateTo('/')}
+              className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+            >
+              View homepage
+            </button>
+            <button
+              type="button"
+              onClick={onLogout}
+              className="rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600"
+            >
+              Logout
+            </button>
+          </div>
+        </div>
+
+        <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <h2 className="text-2xl font-bold text-white">{editingProject ? 'Edit Project' : 'Add New Project'}</h2>
+            <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Title</label>
+                <input
+                  type="text"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Category</label>
+                <select
+                  value={category}
+                  onChange={(e) => setCategory(e.target.value as ProjectCategory)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                >
+                  {PROJECT_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat} className="text-slate-900">
+                      {cat}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Description</label>
+                <textarea
+                  value={description}
+                  onChange={(e) => setDescription(e.target.value)}
+                  className="mt-2 h-32 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Project URL (optional)</label>
+                <input
+                  type="url"
+                  value={url}
+                  onChange={(e) => setUrl(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Upload Images</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  multiple
+                  onChange={handleImageChange}
+                  className="mt-2 w-full text-sm text-slate-200"
+                />
+              </div>
+              {images.length > 0 && (
+                <div className="rounded-3xl border border-white/10 bg-slate-900 p-4">
+                  <p className="text-sm font-semibold text-slate-200">Image preview</p>
+                  <div className="mt-3 grid gap-3 sm:grid-cols-2">
+                    {images.map((img, idx) => (
+                      <img key={idx} src={img} alt={`Project preview ${idx + 1}`} className="h-48 w-full rounded-3xl object-cover" />
+                    ))}
+                  </div>
+                </div>
+              )}
+              {message && <p className="text-sm text-slate-300">{message}</p>}
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="submit"
+                  className="rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+                >
+                  {editingProject ? 'Save changes' : 'Add project'}
+                </button>
+                {editingProject && (
+                  <button
+                    type="button"
+                    onClick={handleCancelEdit}
+                    className="rounded-2xl border border-white/10 bg-white/5 px-5 py-3 text-sm font-semibold text-white transition hover:bg-white/10"
+                  >
+                    Cancel edit
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+          <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
+            <div className="flex items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold text-white">Projects</h2>
+                <p className="mt-2 text-sm text-slate-400">Manage existing uploads and preview their content.</p>
+              </div>
+              <span className="rounded-full bg-slate-900 px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em] text-slate-300">
+                {projects.length} total
+              </span>
+            </div>
+            <div className="mt-6 space-y-4">
+              {projects.length > 0 ? (
+                projects.map((project) => (
+                  <div key={project.id} className="rounded-3xl border border-white/10 bg-slate-900 p-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                      {project.images.length > 0 ? (
+                        <img src={project.images[0]} alt={project.title} className="h-24 w-full rounded-3xl object-cover sm:w-24" />
+                      ) : (
+                        <div className="flex h-24 w-full items-center justify-center rounded-3xl bg-slate-800 text-sm text-slate-400 sm:w-24">
+                          No image
+                        </div>
+                      )}
+                      <div className="flex-1">
+                        <p className="text-sm uppercase tracking-[0.24em] text-brand-400">{project.category}</p>
+                        <h3 className="mt-2 text-lg font-semibold text-white">{project.title}</h3>
+                        <p className="mt-2 text-sm leading-relaxed text-slate-400 line-clamp-2">{project.description}</p>
+                                {project.url ? (
+                          <a
+                            href={project.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="mt-3 inline-flex items-center gap-2 text-sm font-semibold text-brand-300 hover:text-brand-200"
+                          >
+                            Open project
+                            <ArrowRight className="h-4 w-4" />
+                          </a>
+                        ) : (
+                          <p className="mt-3 text-sm text-slate-500">No project link provided</p>
+                        )}
+                      </div>
+                    </div>
+                    <div className="mt-4 flex flex-wrap gap-3">
+                      <button
+                        type="button"
+                        onClick={() => handleEdit(project)}
+                        className="rounded-2xl border border-white/10 bg-white/5 px-4 py-2 text-sm font-semibold text-white transition hover:bg-white/10"
+                      >
+                        Edit
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => onDelete(project.id)}
+                        className="rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600"
+                      >
+                        Delete
+                      </button>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="rounded-3xl border border-dashed border-white/10 bg-slate-900 p-8 text-center text-slate-300">
+                  No projects yet. Add your first case study using the form.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-    </section>
+
+      <div className="mx-auto max-w-6xl px-0 md:px-0">
+        <div className="mt-10 rounded-3xl border border-white/10 bg-white/5 p-8 shadow-xl">
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-2">
+              <h2 className="text-2xl font-bold text-white">Site content editor</h2>
+              <p className="mt-2 text-sm text-slate-400">Update homepage hero, about section, and contact messaging directly from the admin panel.</p>
+              <div className="mt-6 space-y-6">
+                <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
+                  <h3 className="text-lg font-semibold text-white">Hero section</h3>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <label className="block text-sm text-slate-300">
+                      Badge
+                      <input
+                        value={localContent.hero.badge}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, badge: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      Headline
+                      <input
+                        value={localContent.hero.headline}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, headline: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300 md:col-span-2">
+                      Description
+                      <textarea
+                        value={localContent.hero.description}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, description: e.target.value },
+                        }))}
+                        rows={4}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      Primary CTA
+                      <input
+                        value={localContent.hero.ctaPrimary}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, ctaPrimary: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      Secondary CTA
+                      <input
+                        value={localContent.hero.ctaSecondary}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          hero: { ...prev.hero, ctaSecondary: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
+                  <h3 className="text-lg font-semibold text-white">About section</h3>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <label className="block text-sm text-slate-300">
+                      Section label
+                      <input
+                        value={localContent.about.sectionLabel}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          about: { ...prev.about, sectionLabel: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      Title
+                      <input
+                        value={localContent.about.title}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          about: { ...prev.about, title: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300 md:col-span-2">
+                      Description
+                      <textarea
+                        value={localContent.about.description}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          about: { ...prev.about, description: e.target.value },
+                        }))}
+                        rows={4}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      CTA label
+                      <input
+                        value={localContent.about.ctaLabel}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          about: { ...prev.about, ctaLabel: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      CTA URL
+                      <input
+                        value={localContent.about.ctaUrl}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          about: { ...prev.about, ctaUrl: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
+                  <h3 className="text-lg font-semibold text-white">Contact section</h3>
+                  <div className="mt-4 grid gap-4 md:grid-cols-2">
+                    <label className="block text-sm text-slate-300">
+                      Headline
+                      <input
+                        value={localContent.contact.headline}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          contact: { ...prev.contact, headline: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300 md:col-span-2">
+                      Description
+                      <textarea
+                        value={localContent.contact.description}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          contact: { ...prev.contact, description: e.target.value },
+                        }))}
+                        rows={4}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                    <label className="block text-sm text-slate-300">
+                      CTA label
+                      <input
+                        value={localContent.contact.ctaLabel}
+                        onChange={(e) => setLocalContent((prev) => ({
+                          ...prev,
+                          contact: { ...prev.contact, ctaLabel: e.target.value },
+                        }))}
+                        className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                      />
+                    </label>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-3">
+                  <button
+                    type="button"
+                    onClick={handleLocalContentSave}
+                    className="rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+                  >
+                    Save site content
+                  </button>
+                  {contentMessage && <p className="text-sm text-slate-300">{contentMessage}</p>}
+                </div>
+              </div>
+            </div>
+
+            <div className="space-y-6">
+              <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
+                <h3 className="text-lg font-semibold text-white">Theme settings</h3>
+                <p className="mt-2 text-sm text-slate-400">Theme selection is disabled. The site uses the default dark style.</p>
+              </div>
+
+              <div className="rounded-3xl border border-white/10 bg-slate-900 p-6">
+                <h3 className="text-lg font-semibold text-white">Admin password</h3>
+                <p className="mt-2 text-sm text-slate-400">Change the password used to log into the admin panel.</p>
+                <label className="mt-4 block text-sm text-slate-300">
+                  New password
+                  <input
+                    type="password"
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                  />
+                </label>
+                <label className="mt-4 block text-sm text-slate-300">
+                  Confirm password
+                  <input
+                    type="password"
+                    value={confirmPassword}
+                    onChange={(e) => setConfirmPassword(e.target.value)}
+                    className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-950 px-4 py-3 text-white outline-none"
+                  />
+                </label>
+                <div className="mt-4 flex flex-wrap gap-3">
+                  <button
+                    type="button"
+                    onClick={handlePasswordSave}
+                    className="rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+                  >
+                    Save password
+                  </button>
+                  {passwordMessage && <p className="text-sm text-slate-300">{passwordMessage}</p>}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   );
 }
 
@@ -1118,9 +2028,9 @@ function FAQ() {
 
 // ─── Contact ───────────────────────────────────────────────────────────────
 
-function Contact() {
+function Contact({ content }: { content: SiteContent['contact'] }) {
   return (
-    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-28">
+    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-28 bg-slate-950">
       <div className="absolute inset-0 bg-grid-dark" />
       <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl" />
       <div className="absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl" />
@@ -1321,22 +2231,107 @@ function Footer() {
 // ─── App ───────────────────────────────────────────────────────────────────
 
 export default function App() {
-  useScrollRevealObserver();
+  const pathname = usePathname();
+  useScrollRevealObserver(pathname);
+  const [projects, setProjects] = useState<Project[]>(() => loadProjects());
+  const [siteContent, setSiteContent] = useState<SiteContent>(() => loadSiteContent());
+  const [adminPassword, setAdminPassword] = useState<string>(() => loadAdminPassword());
+
+  useEffect(() => {
+    saveProjects(projects);
+  }, [projects]);
+
+  useEffect(() => {
+    saveSiteContent(siteContent);
+  }, [siteContent]);
+
+  useEffect(() => {
+    saveAdminPassword(adminPassword);
+  }, [adminPassword]);
+
+  const [isAdmin, setIsAdmin] = useState<boolean>(() => isAdminAuthenticated());
+
+  useEffect(() => {
+    if (pathname.startsWith('/admin') && !isAdmin) {
+      navigateTo('/admin/login');
+    }
+  }, [isAdmin, pathname]);
+
+  const handleLogin = () => {
+    loginAdmin();
+    setIsAdmin(true);
+    navigateTo('/admin/dashboard');
+  };
+
+  const handleLogout = () => {
+    logoutAdmin();
+    setIsAdmin(false);
+    navigateTo('/admin/login');
+  };
+
+  const handleSaveSiteContent = (content: SiteContent) => {
+    setSiteContent(content);
+  };
+
+  const handleAdminPasswordChange = (newPassword: string) => {
+    setAdminPassword(newPassword);
+  };
+
+  const handleSaveProject = (project: Project) => {
+    setProjects((current) => {
+      const exists = current.find((item) => item.id === project.id);
+      if (exists) {
+        return current.map((item) => (item.id === project.id ? project : item));
+      }
+      return [project, ...current];
+    });
+  };
+
+  const handleDeleteProject = (id: string) => {
+    setProjects((current) => current.filter((item) => item.id !== id));
+  };
+
+  const projectId = pathname.startsWith('/project/') ? pathname.replace('/project/', '') : undefined;
+  const currentProject = projectId ? projects.find((project) => project.id === projectId) : undefined;
+
+  if (pathname.startsWith('/admin')) {
+    if (!isAdmin) {
+      return <AdminLoginPage onLogin={handleLogin} isAdmin={isAdmin} adminPassword={adminPassword} />;
+    }
+
+    return (
+      <AdminDashboardPage
+        projects={projects}
+        onSave={handleSaveProject}
+        onDelete={handleDeleteProject}
+        onLogout={handleLogout}
+        isAdmin={isAdmin}
+        siteContent={siteContent}
+        onSaveSiteContent={handleSaveSiteContent}
+        adminPassword={adminPassword}
+        onAdminPasswordChange={handleAdminPasswordChange}
+      />
+    );
+  }
+
+  if (pathname.startsWith('/project/')) {
+    return <ProjectDetailsPage project={currentProject} onBack={() => navigateTo('/')} />;
+  }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="min-h-screen bg-slate-950 text-slate-300">
       <Header />
       <main>
-        <Hero />
+        <Hero content={siteContent.hero} />
         <PlatformsMarquee />
-        <About />
+        <About content={siteContent.about} />
         <Services />
-        <Work />
+        <Work projects={projects} />
         <WhyMe />
         <Industries />
         <Reviews />
         <FAQ />
-        <Contact />
+        <Contact content={siteContent.contact} />
       </main>
       <Footer />
     </div>
