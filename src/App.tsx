@@ -27,6 +27,7 @@ import {
   MessageCircle,
   Linkedin,
 } from 'lucide-react';
+import { supabase } from './lib/supabase';
 
 const WHATSAPP = 'https://wa.me/8801785778309';
 const BEHANCE = 'https://www.behance.net/ahsanulhaquehridoy';
@@ -104,8 +105,9 @@ function useScrollRevealObserver(pathname?: string) {
   }, [pathname]);
 }
 
-const ADMIN_USERNAME = 'adminhridoy';
-const DEFAULT_ADMIN_PASSWORD = 'adminhridoy';
+const ADMIN_USERNAME = 'Admin';
+const DEFAULT_ADMIN_PASSWORD = 'AdminHridoy';
+const LEGACY_ADMIN_PASSWORD = 'adminhridoy';
 const ADMIN_PASSWORD_STORAGE_KEY = 'adminPassword';
 const ADMIN_TOKEN_STORAGE_KEY = 'adminAuthToken';
 const PROJECTS_STORAGE_KEY = 'portfolioProjects';
@@ -121,6 +123,7 @@ type SiteContent = {
     description: string;
     ctaPrimary: string;
     ctaSecondary: string;
+    ctaUrl: string;
     image: string;
     subtext: string;
   };
@@ -147,6 +150,7 @@ const DEFAULT_SITE_CONTENT: SiteContent = {
       'I am Ahsanul Haque Hridoy — a certified paid media specialist with 4+ years managing millions in ad spend across Google, Meta and LinkedIn. I build campaigns that deliver measurable ROI, not just clicks.',
     ctaPrimary: 'Get a custom strategy',
     ctaSecondary: 'View my work',
+    ctaUrl: '#contact',
     image: '/WhatsApp_Image_2026-07-02_at_11.43.33_PM.jpeg',
     subtext: '15+ repeat clients · Google & Facebook certified',
   },
@@ -211,6 +215,49 @@ function saveProjects(projects: Project[]) {
   window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
 }
 
+async function loadProjectsFromDatabase(): Promise<Project[] | null> {
+  if (!supabase) return null;
+
+  const { data, error } = await supabase
+    .from('portfolio_projects')
+    .select('*')
+    .order('created_at', { ascending: false });
+  if (error) throw error;
+
+  return (data ?? []).map((project) => ({
+    id: project.id,
+    title: project.title,
+    category: project.category,
+    description: project.description,
+    url: project.url || undefined,
+    images: Array.isArray(project.images) ? project.images : [],
+    createdAt: project.created_at,
+    updatedAt: project.updated_at,
+  })) as Project[];
+}
+
+async function saveProjectToDatabase(project: Project) {
+  if (!supabase) return;
+
+  const { error } = await supabase.from('portfolio_projects').upsert({
+    id: project.id,
+    title: project.title,
+    category: project.category,
+    description: project.description,
+    url: project.url || null,
+    images: project.images,
+    created_at: project.createdAt,
+    updated_at: project.updatedAt,
+  });
+  if (error) throw error;
+}
+
+async function deleteProjectFromDatabase(id: string) {
+  if (!supabase) return;
+  const { error } = await supabase.from('portfolio_projects').delete().eq('id', id);
+  if (error) throw error;
+}
+
 function loadSiteContent(): SiteContent {
   if (typeof window === 'undefined') return DEFAULT_SITE_CONTENT;
   const raw = window.localStorage.getItem(SITE_CONTENT_STORAGE_KEY);
@@ -259,7 +306,15 @@ function saveSiteContent(content: SiteContent) {
 
 function loadAdminPassword(): string {
   if (typeof window === 'undefined') return DEFAULT_ADMIN_PASSWORD;
-  return window.localStorage.getItem(ADMIN_PASSWORD_STORAGE_KEY) || DEFAULT_ADMIN_PASSWORD;
+
+  const storedPassword = window.localStorage.getItem(ADMIN_PASSWORD_STORAGE_KEY);
+
+  if (storedPassword === LEGACY_ADMIN_PASSWORD) {
+    window.localStorage.setItem(ADMIN_PASSWORD_STORAGE_KEY, DEFAULT_ADMIN_PASSWORD);
+    return DEFAULT_ADMIN_PASSWORD;
+  }
+
+  return storedPassword || DEFAULT_ADMIN_PASSWORD;
 }
 
 function saveAdminPassword(password: string) {
@@ -1044,7 +1099,7 @@ function Work({ projects }: { projects: Project[] }) {
                         {project.category}
                       </span>
                       <h3 className="mt-4 text-xl font-semibold text-white">{project.title}</h3>
-                      <p className="mt-3 text-sm leading-relaxed text-slate-400 line-clamp-3">{project.description}</p>
+                      <p className="mt-3 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-400 line-clamp-3">{project.description}</p>
                       <div className="mt-6 flex items-center gap-2 text-sm font-semibold text-brand-300">
                         <span>View details</span>
                         <ArrowRight className="h-4 w-4" />
@@ -1135,7 +1190,7 @@ function ProjectDetailsPage({
             <div>
               <p className="text-sm uppercase tracking-[0.24em] text-brand-400">{project.category}</p>
               <h1 className="mt-3 text-4xl font-extrabold text-white">{project.title}</h1>
-              <p className="mt-4 max-w-3xl text-slate-300">{project.description}</p>
+              <p className="mt-4 max-w-3xl whitespace-pre-wrap break-words text-slate-300">{project.description}</p>
             </div>
             {project.url ? (
               <a
@@ -1224,10 +1279,20 @@ function ProjectDetailsPage({
   );
 }
 
-function AdminLoginPage({ onLogin, isAdmin, adminPassword }: { onLogin: () => void; isAdmin: boolean; adminPassword: string }) {
+function AdminLoginPage({ onLogin, isAdmin, adminPassword, onPasswordReset }: { onLogin: () => void; isAdmin: boolean; adminPassword: string; onPasswordReset: (password: string) => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [showResetForm, setShowResetForm] = useState(false);
+  const [resetUsername, setResetUsername] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [verificationCode, setVerificationCode] = useState('');
+  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [resetError, setResetError] = useState('');
+  const [resetSuccess, setResetSuccess] = useState('');
 
   useEffect(() => {
     if (isAdmin) {
@@ -1245,41 +1310,206 @@ function AdminLoginPage({ onLogin, isAdmin, adminPassword }: { onLogin: () => vo
     setError('Invalid username or password.');
   };
 
+  const handleSendVerificationCode = () => {
+    if (!resetUsername.trim()) {
+      setResetError('Please enter your username first.');
+      setResetSuccess('');
+      return;
+    }
+
+    if (!phoneNumber.trim()) {
+      setResetError('Please enter your phone number.');
+      setResetSuccess('');
+      return;
+    }
+
+    if (resetUsername !== ADMIN_USERNAME) {
+      setResetError('The username is incorrect.');
+      setResetSuccess('');
+      return;
+    }
+
+    const code = Math.floor(100000 + Math.random() * 900000).toString();
+    setGeneratedCode(code);
+    setIsCodeSent(true);
+    setResetError('');
+    setResetSuccess(`Verification code sent to ${phoneNumber}. Demo code: ${code}`);
+  };
+
+  const handlePasswordReset = (e: FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+
+    if (!resetUsername.trim() || !phoneNumber.trim() || !verificationCode.trim() || !newPassword.trim()) {
+      setResetError('Please complete all fields to verify and reset your password.');
+      setResetSuccess('');
+      return;
+    }
+
+    if (resetUsername !== ADMIN_USERNAME) {
+      setResetError('The username is incorrect.');
+      setResetSuccess('');
+      return;
+    }
+
+    if (!generatedCode || verificationCode !== generatedCode) {
+      setResetError('The verification code is incorrect.');
+      setResetSuccess('');
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      setResetError('New password and confirmation do not match.');
+      setResetSuccess('');
+      return;
+    }
+
+    onPasswordReset(newPassword.trim());
+    setResetError('');
+    setResetSuccess('Password reset successfully. You can sign in with your new password.');
+    setResetUsername('');
+    setPhoneNumber('');
+    setVerificationCode('');
+    setGeneratedCode(null);
+    setIsCodeSent(false);
+    setNewPassword('');
+    setConfirmPassword('');
+    setShowResetForm(false);
+    setUsername('');
+    setPassword('');
+  };
+
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-16 text-white">
       <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
         <h1 className="text-3xl font-extrabold text-white">Admin Login</h1>
         <p className="mt-2 text-sm text-slate-400">Secure access to the portfolio admin dashboard.</p>
 
-        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-          <div>
-            <label className="block text-sm font-medium text-slate-200">Username</label>
-            <input
-              type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-              autoComplete="username"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-medium text-slate-200">Password</label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-              autoComplete="current-password"
-            />
-          </div>
-          {error && <p className="text-sm text-rose-400">{error}</p>}
-          <button
-            type="submit"
-            className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
-          >
-            Sign in
-          </button>
-        </form>
+        {!showResetForm ? (
+          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+            <div>
+              <label className="block text-sm font-medium text-slate-200">Username</label>
+              <input
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-200">Password</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                autoComplete="current-password"
+              />
+            </div>
+            {error && <p className="text-sm text-rose-400">{error}</p>}
+            <button
+              type="submit"
+              className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+            >
+              Sign in
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                setShowResetForm(true);
+                setError('');
+                setResetError('');
+                setResetSuccess('');
+              }}
+              className="w-full text-sm font-medium text-brand-300 transition hover:text-brand-200"
+            >
+              Forgot password?
+            </button>
+          </form>
+        ) : (
+          <form onSubmit={handlePasswordReset} className="mt-8 space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-200">Username</label>
+              <input
+                type="text"
+                value={resetUsername}
+                onChange={(e) => setResetUsername(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                autoComplete="username"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-200">Phone number</label>
+              <input
+                type="tel"
+                value={phoneNumber}
+                onChange={(e) => setPhoneNumber(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                placeholder="+1 555 123 4567"
+                autoComplete="tel"
+              />
+            </div>
+
+            <button
+              type="button"
+              onClick={handleSendVerificationCode}
+              className="w-full rounded-2xl border border-brand-400/30 bg-brand-500/10 px-5 py-3 text-sm font-semibold text-brand-300 transition hover:bg-brand-500/20"
+            >
+              Send verification code to my phone
+            </button>
+
+            {isCodeSent && (
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Verification code</label>
+                <input
+                  type="text"
+                  value={verificationCode}
+                  onChange={(e) => setVerificationCode(e.target.value)}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                  placeholder="Enter 6-digit code"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-sm font-medium text-slate-200">New password</label>
+              <input
+                type="password"
+                value={newPassword}
+                onChange={(e) => setNewPassword(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                autoComplete="new-password"
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-200">Confirm password</label>
+              <input
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                autoComplete="new-password"
+              />
+            </div>
+
+            {resetError && <p className="text-sm text-rose-400">{resetError}</p>}
+            {resetSuccess && <p className="text-sm text-emerald-400">{resetSuccess}</p>}
+
+            <button
+              type="submit"
+              className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+            >
+              Verify and reset password
+            </button>
+            <button
+              type="button"
+              onClick={() => setShowResetForm(false)}
+              className="w-full text-sm font-medium text-slate-300 transition hover:text-white"
+            >
+              Back to login
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
@@ -1570,7 +1800,7 @@ function AdminDashboardPage({
                       <div className="flex-1">
                         <p className="text-sm uppercase tracking-[0.24em] text-brand-400">{project.category}</p>
                         <h3 className="mt-2 text-lg font-semibold text-white">{project.title}</h3>
-                        <p className="mt-2 text-sm leading-relaxed text-slate-400 line-clamp-2">{project.description}</p>
+                        <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-relaxed text-slate-400 line-clamp-2">{project.description}</p>
                                 {project.url ? (
                           <a
                             href={project.url}
@@ -2242,6 +2472,31 @@ export default function App() {
   }, [projects]);
 
   useEffect(() => {
+    let active = true;
+
+    loadProjectsFromDatabase()
+      .then(async (databaseProjects) => {
+        if (!active || !databaseProjects) return;
+
+        const localProjects = loadProjects();
+        if (databaseProjects.length === 0 && localProjects.length > 0) {
+          await Promise.all(localProjects.map(saveProjectToDatabase));
+          if (active) setProjects(localProjects);
+          return;
+        }
+
+        setProjects(databaseProjects);
+      })
+      .catch((error) => {
+        console.error('Unable to load projects from Supabase.', error);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  useEffect(() => {
     saveSiteContent(siteContent);
   }, [siteContent]);
 
@@ -2285,10 +2540,16 @@ export default function App() {
       }
       return [project, ...current];
     });
+    void saveProjectToDatabase(project).catch((error) => {
+      console.error('Unable to save project to Supabase.', error);
+    });
   };
 
   const handleDeleteProject = (id: string) => {
     setProjects((current) => current.filter((item) => item.id !== id));
+    void deleteProjectFromDatabase(id).catch((error) => {
+      console.error('Unable to delete project from Supabase.', error);
+    });
   };
 
   const projectId = pathname.startsWith('/project/') ? pathname.replace('/project/', '') : undefined;
@@ -2296,7 +2557,7 @@ export default function App() {
 
   if (pathname.startsWith('/admin')) {
     if (!isAdmin) {
-      return <AdminLoginPage onLogin={handleLogin} isAdmin={isAdmin} adminPassword={adminPassword} />;
+      return <AdminLoginPage onLogin={handleLogin} isAdmin={isAdmin} adminPassword={adminPassword} onPasswordReset={handleAdminPasswordChange} />;
     }
 
     return (
