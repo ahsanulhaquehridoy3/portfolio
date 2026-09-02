@@ -896,6 +896,31 @@ function PlatformsMarquee() {
   );
 }
 
+function VideoIntro() {
+  return (
+    <section className="bg-slate-950 py-16 md:py-20">
+      <div className="mx-auto max-w-6xl px-5">
+        <div className="reveal reveal-up mb-6 text-center">
+          <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Intro video</p>
+        </div>
+
+        <div className="reveal reveal-scale overflow-hidden rounded-3xl border border-white/15 bg-white/5 p-2 shadow-[0_30px_80px_-40px_rgba(59,130,246,0.8)] md:p-3">
+          <div className="overflow-hidden rounded-[1.25rem]">
+            <iframe
+              className="aspect-video w-full rounded-[1.25rem]"
+              src="https://www.youtube.com/embed/wdVo_t7B6UM"
+              title="Ahsanul Haque Hridoy introduction video"
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          </div>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 // ─── About ─────────────────────────────────────────────────────────────────
 
 function About({ content }: { content: SiteContent['about'] }) {
@@ -1279,20 +1304,10 @@ function ProjectDetailsPage({
   );
 }
 
-function AdminLoginPage({ onLogin, isAdmin, adminPassword, onPasswordReset }: { onLogin: () => void; isAdmin: boolean; adminPassword: string; onPasswordReset: (password: string) => void }) {
+function AdminLoginPage({ onLogin, isAdmin, adminPassword }: { onLogin: () => void; isAdmin: boolean; adminPassword: string }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [showResetForm, setShowResetForm] = useState(false);
-  const [resetUsername, setResetUsername] = useState('');
-  const [phoneNumber, setPhoneNumber] = useState('');
-  const [verificationCode, setVerificationCode] = useState('');
-  const [generatedCode, setGeneratedCode] = useState<string | null>(null);
-  const [isCodeSent, setIsCodeSent] = useState(false);
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [resetError, setResetError] = useState('');
-  const [resetSuccess, setResetSuccess] = useState('');
 
   useEffect(() => {
     if (isAdmin) {
@@ -1310,206 +1325,41 @@ function AdminLoginPage({ onLogin, isAdmin, adminPassword, onPasswordReset }: { 
     setError('Invalid username or password.');
   };
 
-  const handleSendVerificationCode = () => {
-    if (!resetUsername.trim()) {
-      setResetError('Please enter your username first.');
-      setResetSuccess('');
-      return;
-    }
-
-    if (!phoneNumber.trim()) {
-      setResetError('Please enter your phone number.');
-      setResetSuccess('');
-      return;
-    }
-
-    if (resetUsername !== ADMIN_USERNAME) {
-      setResetError('The username is incorrect.');
-      setResetSuccess('');
-      return;
-    }
-
-    const code = Math.floor(100000 + Math.random() * 900000).toString();
-    setGeneratedCode(code);
-    setIsCodeSent(true);
-    setResetError('');
-    setResetSuccess(`Verification code sent to ${phoneNumber}. Demo code: ${code}`);
-  };
-
-  const handlePasswordReset = (e: FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-
-    if (!resetUsername.trim() || !phoneNumber.trim() || !verificationCode.trim() || !newPassword.trim()) {
-      setResetError('Please complete all fields to verify and reset your password.');
-      setResetSuccess('');
-      return;
-    }
-
-    if (resetUsername !== ADMIN_USERNAME) {
-      setResetError('The username is incorrect.');
-      setResetSuccess('');
-      return;
-    }
-
-    if (!generatedCode || verificationCode !== generatedCode) {
-      setResetError('The verification code is incorrect.');
-      setResetSuccess('');
-      return;
-    }
-
-    if (newPassword !== confirmPassword) {
-      setResetError('New password and confirmation do not match.');
-      setResetSuccess('');
-      return;
-    }
-
-    onPasswordReset(newPassword.trim());
-    setResetError('');
-    setResetSuccess('Password reset successfully. You can sign in with your new password.');
-    setResetUsername('');
-    setPhoneNumber('');
-    setVerificationCode('');
-    setGeneratedCode(null);
-    setIsCodeSent(false);
-    setNewPassword('');
-    setConfirmPassword('');
-    setShowResetForm(false);
-    setUsername('');
-    setPassword('');
-  };
-
   return (
     <div className="min-h-screen bg-slate-950 px-4 py-16 text-white">
       <div className="mx-auto max-w-md rounded-3xl border border-white/10 bg-white/5 p-8 shadow-2xl backdrop-blur">
         <h1 className="text-3xl font-extrabold text-white">Admin Login</h1>
         <p className="mt-2 text-sm text-slate-400">Secure access to the portfolio admin dashboard.</p>
 
-        {!showResetForm ? (
-          <form onSubmit={handleSubmit} className="mt-8 space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-slate-200">Username</label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                autoComplete="username"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-200">Password</label>
-              <input
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                autoComplete="current-password"
-              />
-            </div>
-            {error && <p className="text-sm text-rose-400">{error}</p>}
-            <button
-              type="submit"
-              className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
-            >
-              Sign in
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setShowResetForm(true);
-                setError('');
-                setResetError('');
-                setResetSuccess('');
-              }}
-              className="w-full text-sm font-medium text-brand-300 transition hover:text-brand-200"
-            >
-              Forgot password?
-            </button>
-          </form>
-        ) : (
-          <form onSubmit={handlePasswordReset} className="mt-8 space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-slate-200">Username</label>
-              <input
-                type="text"
-                value={resetUsername}
-                onChange={(e) => setResetUsername(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                autoComplete="username"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-200">Phone number</label>
-              <input
-                type="tel"
-                value={phoneNumber}
-                onChange={(e) => setPhoneNumber(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                placeholder="+1 555 123 4567"
-                autoComplete="tel"
-              />
-            </div>
-
-            <button
-              type="button"
-              onClick={handleSendVerificationCode}
-              className="w-full rounded-2xl border border-brand-400/30 bg-brand-500/10 px-5 py-3 text-sm font-semibold text-brand-300 transition hover:bg-brand-500/20"
-            >
-              Send verification code to my phone
-            </button>
-
-            {isCodeSent && (
-              <div>
-                <label className="block text-sm font-medium text-slate-200">Verification code</label>
-                <input
-                  type="text"
-                  value={verificationCode}
-                  onChange={(e) => setVerificationCode(e.target.value)}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                  placeholder="Enter 6-digit code"
-                />
-              </div>
-            )}
-
-            <div>
-              <label className="block text-sm font-medium text-slate-200">New password</label>
-              <input
-                type="password"
-                value={newPassword}
-                onChange={(e) => setNewPassword(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                autoComplete="new-password"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-200">Confirm password</label>
-              <input
-                type="password"
-                value={confirmPassword}
-                onChange={(e) => setConfirmPassword(e.target.value)}
-                className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                autoComplete="new-password"
-              />
-            </div>
-
-            {resetError && <p className="text-sm text-rose-400">{resetError}</p>}
-            {resetSuccess && <p className="text-sm text-emerald-400">{resetSuccess}</p>}
-
-            <button
-              type="submit"
-              className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
-            >
-              Verify and reset password
-            </button>
-            <button
-              type="button"
-              onClick={() => setShowResetForm(false)}
-              className="w-full text-sm font-medium text-slate-300 transition hover:text-white"
-            >
-              Back to login
-            </button>
-          </form>
-        )}
+        <form onSubmit={handleSubmit} className="mt-8 space-y-6">
+          <div>
+            <label className="block text-sm font-medium text-slate-200">Username</label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+              autoComplete="username"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-slate-200">Password</label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+              autoComplete="current-password"
+            />
+          </div>
+          {error && <p className="text-sm text-rose-400">{error}</p>}
+          <button
+            type="submit"
+            className="w-full rounded-2xl bg-brand-500 px-5 py-3 text-sm font-semibold text-white transition hover:bg-brand-600"
+          >
+            Sign in
+          </button>
+        </form>
       </div>
     </div>
   );
@@ -2557,7 +2407,7 @@ export default function App() {
 
   if (pathname.startsWith('/admin')) {
     if (!isAdmin) {
-      return <AdminLoginPage onLogin={handleLogin} isAdmin={isAdmin} adminPassword={adminPassword} onPasswordReset={handleAdminPasswordChange} />;
+      return <AdminLoginPage onLogin={handleLogin} isAdmin={isAdmin} adminPassword={adminPassword} />;
     }
 
     return (
@@ -2580,11 +2430,12 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-300">
+    <div className="min-h-screen">
       <Header />
       <main>
         <Hero content={siteContent.hero} />
         <PlatformsMarquee />
+        <VideoIntro />
         <About content={siteContent.about} />
         <Services />
         <Work projects={projects} />
