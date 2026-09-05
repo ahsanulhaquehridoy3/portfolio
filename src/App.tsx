@@ -148,8 +148,8 @@ const DEFAULT_SITE_CONTENT: SiteContent = {
     headline: 'Ads that drive real business growth.',
     description:
       'I am Ahsanul Haque Hridoy — a certified paid media specialist with 4+ years managing millions in ad spend across Google, Meta and LinkedIn. I build campaigns that deliver measurable ROI, not just clicks.',
-    ctaPrimary: 'Get a custom strategy',
-    ctaSecondary: 'View my work',
+    ctaPrimary: 'Get Free Quote',
+    ctaSecondary: 'View My All Work',
     ctaUrl: '#contact',
     image: '/WhatsApp_Image_2026-07-02_at_11.43.33_PM.jpeg',
     subtext: '15+ repeat clients · Google & Facebook certified',
@@ -267,13 +267,20 @@ function loadSiteContent(): SiteContent {
     const parsed = JSON.parse(raw) as Partial<SiteContent>;
     const safe = <T extends string>(value: unknown, fallback: T): T =>
       typeof value === 'string' && value.trim() ? (value as T) : fallback;
+    const normalizeHeroCta = (value: unknown, fallback: string): string => {
+      const safeValue = safe(value, fallback);
+      if (safeValue.toLowerCase().includes('get a custom strategy')) {
+        return fallback;
+      }
+      return safeValue;
+    };
 
     return {
       hero: {
         badge: safe(parsed.hero?.badge, DEFAULT_SITE_CONTENT.hero.badge),
         headline: safe(parsed.hero?.headline, DEFAULT_SITE_CONTENT.hero.headline),
         description: safe(parsed.hero?.description, DEFAULT_SITE_CONTENT.hero.description),
-        ctaPrimary: safe(parsed.hero?.ctaPrimary, DEFAULT_SITE_CONTENT.hero.ctaPrimary),
+        ctaPrimary: normalizeHeroCta(parsed.hero?.ctaPrimary, DEFAULT_SITE_CONTENT.hero.ctaPrimary),
         ctaSecondary: safe(parsed.hero?.ctaSecondary, DEFAULT_SITE_CONTENT.hero.ctaSecondary),
         ctaUrl: safe(parsed.hero?.ctaUrl, DEFAULT_SITE_CONTENT.hero.ctaUrl),
         image: safe(parsed.hero?.image, DEFAULT_SITE_CONTENT.hero.image),
@@ -339,7 +346,9 @@ function logoutAdmin() {
 
 function navigateTo(path: string) {
   if (typeof window === 'undefined') return;
+  window.history.scrollRestoration = 'manual';
   window.history.pushState({ path }, '', path);
+  window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   window.dispatchEvent(new PopStateEvent('popstate', { state: window.history.state }));
 }
 
@@ -348,7 +357,12 @@ function usePathname() {
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handlePopstate = () => setPathname(window.location.pathname || '/');
+    window.history.scrollRestoration = 'manual';
+    const handlePopstate = () => {
+      setPathname(window.location.pathname || '/');
+      window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    };
+    handlePopstate();
     window.addEventListener('popstate', handlePopstate);
     return () => window.removeEventListener('popstate', handlePopstate);
   }, []);
@@ -712,8 +726,8 @@ function Header() {
           ))}
         </nav>
         <div className="hidden items-center gap-3 md:flex">
-          <a href="#contact" className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
-            Get a custom strategy
+          <a href="#why" className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
+            WhatsApp
           </a>
         </div>
         <button
@@ -733,8 +747,8 @@ function Header() {
                 {label}
               </a>
             ))}
-            <a href="#contact" onClick={() => setOpen(false)} className="mt-1 rounded-full bg-brand-500 px-5 py-2.5 text-center text-sm font-semibold text-white">
-              Get a custom strategy
+            <a href="#why" onClick={() => setOpen(false)} className="mt-1 rounded-full bg-brand-500 px-5 py-2.5 text-center text-sm font-semibold text-white">
+              WhatsApp
             </a>
           </nav>
         </div>
@@ -776,11 +790,11 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
             </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a href="#contact" className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
+            <a href="#why" className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
               {content.ctaPrimary}
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
             </a>
-            <a href="#work" className="reveal reveal-up reveal-delay-300 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white transition hover:border-white/40 hover:bg-white/10">
+            <a href="#work" className="reveal reveal-up reveal-delay-300 inline-flex items-center gap-2 rounded-full border border-fuchsia-300/50 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_35px_-14px_rgba(168,85,247,0.9)] ring-1 ring-white/30 transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_20px_40px_-12px_rgba(34,211,238,0.8)]">
               {content.ctaSecondary}
             </a>
           </div>
@@ -1013,7 +1027,7 @@ function Services() {
           shown ? 'opacity-100 translate-y-0 translate-x-0' : `opacity-0 ${hiddenClass}`
         }`}
       >
-        <div className="mt-10 flex justify-center">
+        <div id="whatsapp-cta" className="mt-10 flex justify-center">
           <a
             href={WHATSAPP}
             target="_blank"
@@ -2313,6 +2327,13 @@ function Footer() {
 export default function App() {
   const pathname = usePathname();
   useScrollRevealObserver(pathname);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    window.history.scrollRestoration = 'manual';
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
   const [projects, setProjects] = useState<Project[]>(() => loadProjects());
   const [siteContent, setSiteContent] = useState<SiteContent>(() => loadSiteContent());
   const [adminPassword, setAdminPassword] = useState<string>(() => loadAdminPassword());
