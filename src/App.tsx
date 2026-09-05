@@ -25,11 +25,14 @@ import {
   Briefcase,
   Award,
   MessageCircle,
+  Phone,
   Linkedin,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
 const WHATSAPP = 'https://wa.me/8801785778309';
+const PHONE = '+8801785778309';
+const PHONE_DISPLAY = '+880 1785 778 309';
 const BEHANCE = 'https://www.behance.net/ahsanulhaquehridoy';
 const LINKEDIN = 'https://www.linkedin.com/in/ahsanulhaquehridoy';
 const FACEBOOK = 'https://www.facebook.com/share/1Ek2qFzhBm/?mibextid=wwXIfr';
@@ -726,7 +729,11 @@ function Header() {
           ))}
         </nav>
         <div className="hidden items-center gap-3 md:flex">
-          <a href="#why" className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
+          <a href={`tel:${PHONE}`} className="inline-flex items-center gap-2 rounded-full border border-white/20 px-4 py-2.5 text-sm font-semibold text-white transition hover:border-brand-400 hover:text-brand-300">
+            <Phone className="h-4 w-4" />
+            {PHONE_DISPLAY}
+          </a>
+          <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" className="rounded-full bg-brand-500 px-5 py-2.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
             WhatsApp
           </a>
         </div>
@@ -747,7 +754,11 @@ function Header() {
                 {label}
               </a>
             ))}
-            <a href="#why" onClick={() => setOpen(false)} className="mt-1 rounded-full bg-brand-500 px-5 py-2.5 text-center text-sm font-semibold text-white">
+            <a href={`tel:${PHONE}`} onClick={() => setOpen(false)} className="mt-1 inline-flex items-center justify-center gap-2 rounded-full border border-white/20 px-5 py-2.5 text-center text-sm font-semibold text-white">
+              <Phone className="h-4 w-4" />
+              Call {PHONE_DISPLAY}
+            </a>
+            <a href={WHATSAPP} target="_blank" rel="noopener noreferrer" onClick={() => setOpen(false)} className="rounded-full bg-brand-500 px-5 py-2.5 text-center text-sm font-semibold text-white">
               WhatsApp
             </a>
           </nav>
