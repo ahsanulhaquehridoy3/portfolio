@@ -27,6 +27,7 @@ import {
   MessageCircle,
   Phone,
   Linkedin,
+  GripVertical,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
@@ -175,6 +176,7 @@ const DEFAULT_SITE_CONTENT: SiteContent = {
 
 type Project = {
   id: string;
+  orderIndex: number;
   title: string;
   category: ProjectCategory | string;
   description: string;
@@ -183,6 +185,34 @@ type Project = {
   createdAt: string;
   updatedAt: string;
 };
+
+function isMissingProjectOrderColumn(error: { code?: string } | null) {
+  return error?.code === '42703' || error?.code === 'PGRST204';
+}
+
+function normalizeProject(raw: any): Project {
+  const images = Array.isArray(raw?.images)
+    ? raw.images.filter((image: unknown): image is string => typeof image === 'string' && image.length > 0)
+    : typeof raw?.image === 'string' && raw.image.length > 0
+    ? [raw.image]
+    : [];
+
+  return {
+    id: typeof raw?.id === 'string' && raw.id ? raw.id : generateToken(),
+    orderIndex: typeof raw?.orderIndex === 'number'
+      ? raw.orderIndex
+      : typeof raw?.sort_order === 'number'
+      ? raw.sort_order
+      : 0,
+    title: typeof raw?.title === 'string' ? raw.title : 'Untitled project',
+    category: typeof raw?.category === 'string' ? raw.category : PROJECT_CATEGORIES[0],
+    description: typeof raw?.description === 'string' ? raw.description : '',
+    url: typeof raw?.url === 'string' && raw.url ? raw.url : undefined,
+    images,
+    createdAt: typeof raw?.createdAt === 'string' ? raw.createdAt : new Date().toISOString(),
+    updatedAt: typeof raw?.updatedAt === 'string' ? raw.updatedAt : new Date().toISOString(),
+  };
+}
 
 function generateToken() {
   if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
@@ -199,15 +229,9 @@ function loadProjects(): Project[] {
 
   try {
     const parsed = JSON.parse(raw) as any[];
-    return parsed.map((project) => ({
-      ...project,
-      images: Array.isArray(project.images)
-        ? project.images
-        : project.image
-        ? [project.image]
-        : [],
-      url: project.url || undefined,
-    })) as Project[];
+    return Array.isArray(parsed)
+      ? parsed.map((project, index) => normalizeProject({ ...project, orderIndex: project?.orderIndex ?? index }))
+      : [];
   } catch {
     return [];
   }
@@ -215,34 +239,85 @@ function loadProjects(): Project[] {
 
 function saveProjects(projects: Project[]) {
   if (typeof window === 'undefined') return;
-  window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  try {
+    window.localStorage.setItem(PROJECTS_STORAGE_KEY, JSON.stringify(projects));
+  } catch (error) {
+    // Large base64 image uploads can exceed localStorage even though the page is still usable.
+    console.warn('Unable to cache projects locally; Supabase remains the durable project store.', error);
+  }
 }
 
-async function loadProjectsFromDatabase(): Promise<Project[] | null> {
-  if (!supabase) return null;
+function readProjectImage(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error);
+    reader.onload = () => {
+      if (typeof reader.result !== 'string') {
+        reject(new Error('Unable to read project image.'));
+        return;
+      }
 
-  const { data, error } = await supabase
+      const image = new Image();
+      image.onerror = () => reject(new Error('Unable to decode project image.'));
+      image.onload = () => {
+        const maxDimension = 1800;
+        const scale = Math.min(1, maxDimension / Math.max(image.naturalWidth, image.naturalHeight));
+        const canvas = document.createElement('canvas');
+        canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+        canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+        const context = canvas.getContext('2d');
+
+        if (!context) {
+          resolve(reader.result as string);
+          return;
+        }
+
+        context.drawImage(image, 0, 0, canvas.width, canvas.height);
+        resolve(canvas.toDataURL('image/jpeg', 0.82));
+      };
+      image.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function loadProjectsFromDatabase(): Promise<Project[]> {
+  if (!supabase) {
+    throw new Error('Supabase is not configured. Projects cannot be loaded from the database.');
+  }
+
+  let { data, error } = await supabase
     .from('portfolio_projects')
     .select('*')
+    .order('sort_order', { ascending: true })
     .order('created_at', { ascending: false });
+
+  if (isMissingProjectOrderColumn(error)) {
+    const fallback = await supabase
+      .from('portfolio_projects')
+      .select('*')
+      .order('updated_at', { ascending: false })
+      .order('created_at', { ascending: false });
+    data = fallback.data;
+    error = fallback.error;
+  }
+
   if (error) throw error;
 
-  return (data ?? []).map((project) => ({
-    id: project.id,
-    title: project.title,
-    category: project.category,
-    description: project.description,
-    url: project.url || undefined,
-    images: Array.isArray(project.images) ? project.images : [],
+  return (data ?? []).map((project) => normalizeProject({
+    ...project,
+    orderIndex: project.sort_order,
     createdAt: project.created_at,
     updatedAt: project.updated_at,
-  })) as Project[];
+  }));
 }
 
 async function saveProjectToDatabase(project: Project) {
-  if (!supabase) return;
+  if (!supabase) {
+    throw new Error('Supabase is not configured. Projects cannot be saved to the database.');
+  }
 
-  const { error } = await supabase.from('portfolio_projects').upsert({
+  const projectRow = {
     id: project.id,
     title: project.title,
     category: project.category,
@@ -251,12 +326,25 @@ async function saveProjectToDatabase(project: Project) {
     images: project.images,
     created_at: project.createdAt,
     updated_at: project.updatedAt,
+  };
+  const { error } = await supabase.from('portfolio_projects').upsert({
+    ...projectRow,
+    sort_order: project.orderIndex,
   });
+
+  if (isMissingProjectOrderColumn(error)) {
+    const fallback = await supabase.from('portfolio_projects').upsert(projectRow);
+    if (fallback.error) throw fallback.error;
+    return;
+  }
+
   if (error) throw error;
 }
 
 async function deleteProjectFromDatabase(id: string) {
-  if (!supabase) return;
+  if (!supabase) {
+    throw new Error('Supabase is not configured. Projects cannot be deleted from the database.');
+  }
   const { error } = await supabase.from('portfolio_projects').delete().eq('id', id);
   if (error) throw error;
 }
@@ -551,6 +639,9 @@ const campaignProjects = [
   },
 ];
 
+void featuredCaseStudyImages;
+void campaignProjects;
+
 const experience = [
   {
     role: 'Senior Executive — PPC Rockers',
@@ -774,7 +865,6 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
   const sectionBg = 'bg-slate-950';
   const textColor = 'text-white';
   const subText = 'text-slate-400';
-  const cardBg = 'bg-slate-950/40 border-white/20';
 
   return (
     <section id="top" className={`relative isolate overflow-hidden ${sectionBg} pt-28 pb-20 md:pt-36`}>
@@ -950,9 +1040,6 @@ function VideoIntro() {
 
 function About({ content }: { content: SiteContent['about'] }) {
   const sectionBg = 'bg-transparent';
-  const cardBg = 'bg-white/5 border-white/15';
-  const textColor = 'text-white';
-  const subText = 'text-slate-400';
 
   return (
     <section id="about" className={`py-20 md:py-28 ${sectionBg}`}>
@@ -1394,21 +1481,19 @@ function AdminDashboardPage({
   projects,
   onSave,
   onDelete,
+  onReorder,
   onLogout,
-  isAdmin,
   siteContent,
   onSaveSiteContent,
-  adminPassword,
   onAdminPasswordChange,
 }: {
   projects: Project[];
-  onSave: (project: Project) => void;
-  onDelete: (id: string) => void;
+  onSave: (project: Project) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
+  onReorder: (projects: Project[]) => Promise<void>;
   onLogout: () => void;
-  isAdmin: boolean;
   siteContent: SiteContent;
   onSaveSiteContent: (content: SiteContent) => void;
-  adminPassword: string;
   onAdminPasswordChange: (password: string) => void;
 }) {
   const [editingProject, setEditingProject] = useState<Project | null>(null);
@@ -1423,6 +1508,8 @@ function AdminDashboardPage({
   const [passwordMessage, setPasswordMessage] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+  const draggedProjectIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalContent(siteContent);
@@ -1450,40 +1537,11 @@ function AdminDashboardPage({
     const files = event.target.files;
     if (!files?.length) return;
 
-    const readers = Array.from(files).map((file) => {
-      return new Promise<string>((resolve) => {
-        const reader = new FileReader();
-        reader.onload = () => {
-          if (typeof reader.result === 'string') {
-            resolve(reader.result);
-          }
-        };
-        reader.readAsDataURL(file);
-      });
-    });
+    const readers = Array.from(files).map(readProjectImage);
 
-    Promise.all(readers).then((results) => {
-      setImages((current) => [...current, ...results]);
-    });
-  };
-
-  const handleSiteImageChange = (section: 'hero' | 'about', event: ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setLocalContent((prev) => ({
-          ...prev,
-          [section]: {
-            ...prev[section],
-            image: reader.result,
-          },
-        }));
-      }
-    };
-    reader.readAsDataURL(file);
+    Promise.all(readers)
+      .then((results) => setImages((current) => [...current, ...results]))
+      .catch(() => setMessage('One or more images could not be processed. Please try again.'));
   };
 
   const handleLocalContentSave = () => {
@@ -1508,7 +1566,7 @@ function AdminDashboardPage({
     setTimeout(() => setPasswordMessage(''), 4000);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!title.trim() || !description.trim() || images.length === 0) {
       setMessage('Title, description, and at least one image are required.');
@@ -1517,6 +1575,7 @@ function AdminDashboardPage({
 
     const project: Project = {
       id: editingProject?.id ?? generateToken(),
+      orderIndex: editingProject?.orderIndex ?? 0,
       title: title.trim(),
       category,
       description: description.trim(),
@@ -1526,9 +1585,14 @@ function AdminDashboardPage({
       updatedAt: new Date().toISOString(),
     };
 
-    onSave(project);
-    setEditingProject(null);
-    setMessage(editingProject ? 'Project updated successfully.' : 'Project added successfully.');
+    try {
+      await onSave(project);
+      setEditingProject(null);
+      setMessage(editingProject ? 'Project updated successfully.' : 'Project added successfully.');
+    } catch (error) {
+      console.error('Unable to save project to Supabase.', error);
+      setMessage('Project could not be saved. Please try again.');
+    }
   };
 
   const handleEdit = (project: Project) => {
@@ -1537,6 +1601,33 @@ function AdminDashboardPage({
 
   const handleCancelEdit = () => {
     setEditingProject(null);
+  };
+
+  const handleProjectDrop = async (targetProjectId: string) => {
+    const sourceProjectId = draggedProjectIdRef.current;
+    if (!sourceProjectId || sourceProjectId === targetProjectId) return;
+
+    const reorderedProjects = [...projects];
+    const draggedIndex = reorderedProjects.findIndex((project) => project.id === sourceProjectId);
+    const targetIndex = reorderedProjects.findIndex((project) => project.id === targetProjectId);
+    if (draggedIndex < 0 || targetIndex < 0) return;
+
+    const [draggedProject] = reorderedProjects.splice(draggedIndex, 1);
+    const insertionIndex = draggedIndex < targetIndex ? targetIndex + 1 : targetIndex;
+    reorderedProjects.splice(insertionIndex, 0, draggedProject);
+    const orderTimestamp = Date.now();
+    const projectsWithOrder = reorderedProjects.map((project, index) => ({
+      ...project,
+      orderIndex: index,
+      updatedAt: new Date(orderTimestamp - index).toISOString(),
+    }));
+    try {
+      await onReorder(projectsWithOrder);
+      setDraggedProjectId(null);
+    } catch (error) {
+      console.error('Unable to save project order to Supabase.', error);
+      setMessage('Project order could not be saved. Please try again.');
+    }
   };
 
   return (
@@ -1662,9 +1753,32 @@ function AdminDashboardPage({
             </div>
             <div className="mt-6 space-y-4">
               {projects.length > 0 ? (
-                projects.map((project) => (
-                  <div key={project.id} className="rounded-3xl border border-white/10 bg-slate-900 p-4">
+                projects.map((project, index) => (
+                  <div
+                    key={project.id}
+                    draggable
+                    onDragStart={(event) => {
+                      draggedProjectIdRef.current = project.id;
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', project.id);
+                      setDraggedProjectId(project.id);
+                    }}
+                    onDragEnd={() => {
+                      draggedProjectIdRef.current = null;
+                      setDraggedProjectId(null);
+                    }}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      void handleProjectDrop(project.id);
+                    }}
+                    className={`rounded-3xl border border-white/10 bg-slate-900 p-4 transition ${draggedProjectId === project.id ? 'opacity-50' : ''}`}
+                  >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
+                      <div className="flex items-center gap-2 text-slate-500" title="Drag to reorder">
+                        <GripVertical className="h-5 w-5 shrink-0" />
+                        <span className="text-xs font-semibold">{index + 1}</span>
+                      </div>
                       {project.images.length > 0 ? (
                         <img src={project.images[0]} alt={project.title} className="h-24 w-full rounded-3xl object-cover sm:w-24" />
                       ) : (
@@ -1701,7 +1815,12 @@ function AdminDashboardPage({
                       </button>
                       <button
                         type="button"
-                        onClick={() => onDelete(project.id)}
+                        onClick={() => {
+                          void onDelete(project.id).catch((error) => {
+                            console.error('Unable to delete project from Supabase.', error);
+                            setMessage('Project could not be deleted. Please try again.');
+                          });
+                        }}
                         className="rounded-2xl bg-rose-500 px-4 py-2 text-sm font-semibold text-white transition hover:bg-rose-600"
                       >
                         Delete
@@ -2133,7 +2252,7 @@ function FAQ() {
 
 // ─── Contact ───────────────────────────────────────────────────────────────
 
-function Contact({ content }: { content: SiteContent['contact'] }) {
+function Contact() {
   return (
     <section id="contact" className="relative isolate overflow-hidden py-20 md:py-28 bg-slate-950">
       <div className="absolute inset-0 bg-grid-dark" />
@@ -2345,29 +2464,29 @@ export default function App() {
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
   }, [pathname]);
 
-  const [projects, setProjects] = useState<Project[]>(() => loadProjects());
+  const [projects, setProjects] = useState<Project[]>([]);
   const [siteContent, setSiteContent] = useState<SiteContent>(() => loadSiteContent());
   const [adminPassword, setAdminPassword] = useState<string>(() => loadAdminPassword());
-
-  useEffect(() => {
-    saveProjects(projects);
-  }, [projects]);
 
   useEffect(() => {
     let active = true;
 
     loadProjectsFromDatabase()
       .then(async (databaseProjects) => {
-        if (!active || !databaseProjects) return;
+        if (!active) return;
 
         const localProjects = loadProjects();
         if (databaseProjects.length === 0 && localProjects.length > 0) {
           await Promise.all(localProjects.map(saveProjectToDatabase));
-          if (active) setProjects(localProjects);
+          if (active) {
+            setProjects(localProjects);
+            saveProjects([]);
+          }
           return;
         }
 
         setProjects(databaseProjects);
+        saveProjects([]);
       })
       .catch((error) => {
         console.error('Unable to load projects from Supabase.', error);
@@ -2414,24 +2533,28 @@ export default function App() {
     setAdminPassword(newPassword);
   };
 
-  const handleSaveProject = (project: Project) => {
-    setProjects((current) => {
-      const exists = current.find((item) => item.id === project.id);
-      if (exists) {
-        return current.map((item) => (item.id === project.id ? project : item));
-      }
-      return [project, ...current];
-    });
-    void saveProjectToDatabase(project).catch((error) => {
-      console.error('Unable to save project to Supabase.', error);
-    });
+  const handleSaveProject = async (project: Project) => {
+    const nextProjects = projects.some((item) => item.id === project.id)
+      ? projects.map((item) => (item.id === project.id ? project : item))
+      : [project, ...projects];
+    const orderedProjects = nextProjects.map((item, index) => ({ ...item, orderIndex: index }));
+
+    await Promise.all(orderedProjects.map(saveProjectToDatabase));
+    setProjects(orderedProjects);
   };
 
-  const handleDeleteProject = (id: string) => {
-    setProjects((current) => current.filter((item) => item.id !== id));
-    void deleteProjectFromDatabase(id).catch((error) => {
-      console.error('Unable to delete project from Supabase.', error);
-    });
+  const handleReorderProjects = async (reorderedProjects: Project[]) => {
+    await Promise.all(reorderedProjects.map(saveProjectToDatabase));
+    setProjects(reorderedProjects);
+  };
+
+  const handleDeleteProject = async (id: string) => {
+    const remainingProjects = projects
+      .filter((item) => item.id !== id)
+      .map((item, index) => ({ ...item, orderIndex: index }));
+    await Promise.all(remainingProjects.map(saveProjectToDatabase));
+    await deleteProjectFromDatabase(id);
+    setProjects(remainingProjects);
   };
 
   const projectId = pathname.startsWith('/project/') ? pathname.replace('/project/', '') : undefined;
@@ -2447,11 +2570,10 @@ export default function App() {
         projects={projects}
         onSave={handleSaveProject}
         onDelete={handleDeleteProject}
+        onReorder={handleReorderProjects}
         onLogout={handleLogout}
-        isAdmin={isAdmin}
         siteContent={siteContent}
         onSaveSiteContent={handleSaveSiteContent}
-        adminPassword={adminPassword}
         onAdminPasswordChange={handleAdminPasswordChange}
       />
     );
@@ -2475,7 +2597,7 @@ export default function App() {
         <Industries />
         <Reviews />
         <FAQ />
-        <Contact content={siteContent.contact} />
+        <Contact />
       </main>
       <Footer />
     </div>
