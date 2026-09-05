@@ -27,7 +27,6 @@ import {
   MessageCircle,
   Phone,
   Linkedin,
-  GripVertical,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
@@ -1481,7 +1480,6 @@ function AdminDashboardPage({
   projects,
   onSave,
   onDelete,
-  onReorder,
   onLogout,
   siteContent,
   onSaveSiteContent,
@@ -1490,7 +1488,6 @@ function AdminDashboardPage({
   projects: Project[];
   onSave: (project: Project) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
-  onReorder: (projects: Project[]) => Promise<void>;
   onLogout: () => void;
   siteContent: SiteContent;
   onSaveSiteContent: (content: SiteContent) => void;
@@ -1502,14 +1499,13 @@ function AdminDashboardPage({
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
   const [images, setImages] = useState<string[]>([]);
+  const [orderNumber, setOrderNumber] = useState(1);
   const [message, setMessage] = useState('');
   const [localContent, setLocalContent] = useState<SiteContent>(siteContent);
   const [contentMessage, setContentMessage] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
-  const draggedProjectIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     setLocalContent(siteContent);
@@ -1522,6 +1518,7 @@ function AdminDashboardPage({
       setDescription(editingProject.description);
       setUrl(editingProject.url || '');
       setImages(editingProject.images || []);
+      setOrderNumber(editingProject.orderIndex + 1);
       setMessage('Editing project');
       return;
     }
@@ -1530,8 +1527,9 @@ function AdminDashboardPage({
     setDescription('');
     setUrl('');
     setImages([]);
+    setOrderNumber(projects.length + 1);
     setMessage('');
-  }, [editingProject]);
+  }, [editingProject, projects.length]);
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -1572,10 +1570,14 @@ function AdminDashboardPage({
       setMessage('Title, description, and at least one image are required.');
       return;
     }
+    if (!Number.isInteger(orderNumber) || orderNumber < 1) {
+      setMessage('Order must be a whole number greater than or equal to 1.');
+      return;
+    }
 
     const project: Project = {
       id: editingProject?.id ?? generateToken(),
-      orderIndex: editingProject?.orderIndex ?? 0,
+      orderIndex: orderNumber - 1,
       title: title.trim(),
       category,
       description: description.trim(),
@@ -1601,33 +1603,6 @@ function AdminDashboardPage({
 
   const handleCancelEdit = () => {
     setEditingProject(null);
-  };
-
-  const handleProjectDrop = async (targetProjectId: string) => {
-    const sourceProjectId = draggedProjectIdRef.current;
-    if (!sourceProjectId || sourceProjectId === targetProjectId) return;
-
-    const reorderedProjects = [...projects];
-    const draggedIndex = reorderedProjects.findIndex((project) => project.id === sourceProjectId);
-    const targetIndex = reorderedProjects.findIndex((project) => project.id === targetProjectId);
-    if (draggedIndex < 0 || targetIndex < 0) return;
-
-    const [draggedProject] = reorderedProjects.splice(draggedIndex, 1);
-    const insertionIndex = draggedIndex < targetIndex ? targetIndex + 1 : targetIndex;
-    reorderedProjects.splice(insertionIndex, 0, draggedProject);
-    const orderTimestamp = Date.now();
-    const projectsWithOrder = reorderedProjects.map((project, index) => ({
-      ...project,
-      orderIndex: index,
-      updatedAt: new Date(orderTimestamp - index).toISOString(),
-    }));
-    try {
-      await onReorder(projectsWithOrder);
-      setDraggedProjectId(null);
-    } catch (error) {
-      console.error('Unable to save project order to Supabase.', error);
-      setMessage('Project order could not be saved. Please try again.');
-    }
   };
 
   return (
@@ -1682,6 +1657,18 @@ function AdminDashboardPage({
                     </option>
                   ))}
                 </select>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-200">Order</label>
+                <input
+                  type="number"
+                  min="1"
+                  step="1"
+                  value={orderNumber}
+                  onChange={(e) => setOrderNumber(Number(e.target.value))}
+                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
+                />
+                <p className="mt-2 text-xs text-slate-500">Enter the position where this project should appear.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-200">Description</label>
@@ -1756,28 +1743,11 @@ function AdminDashboardPage({
                 projects.map((project, index) => (
                   <div
                     key={project.id}
-                    draggable
-                    onDragStart={(event) => {
-                      draggedProjectIdRef.current = project.id;
-                      event.dataTransfer.effectAllowed = 'move';
-                      event.dataTransfer.setData('text/plain', project.id);
-                      setDraggedProjectId(project.id);
-                    }}
-                    onDragEnd={() => {
-                      draggedProjectIdRef.current = null;
-                      setDraggedProjectId(null);
-                    }}
-                    onDragOver={(event) => event.preventDefault()}
-                    onDrop={(event) => {
-                      event.preventDefault();
-                      void handleProjectDrop(project.id);
-                    }}
-                    className={`rounded-3xl border border-white/10 bg-slate-900 p-4 transition ${draggedProjectId === project.id ? 'opacity-50' : ''}`}
+                    className="rounded-3xl border border-white/10 bg-slate-900 p-4 transition"
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                      <div className="flex items-center gap-2 text-slate-500" title="Drag to reorder">
-                        <GripVertical className="h-5 w-5 shrink-0" />
-                        <span className="text-xs font-semibold">{index + 1}</span>
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-sm font-semibold text-slate-300" title="Project order">
+                        {index + 1}
                       </div>
                       {project.images.length > 0 ? (
                         <img src={project.images[0]} alt={project.title} className="h-24 w-full rounded-3xl object-cover sm:w-24" />
@@ -2534,24 +2504,29 @@ export default function App() {
   };
 
   const handleSaveProject = async (project: Project) => {
-    const nextProjects = projects.some((item) => item.id === project.id)
-      ? projects.map((item) => (item.id === project.id ? project : item))
-      : [project, ...projects];
-    const orderedProjects = nextProjects.map((item, index) => ({ ...item, orderIndex: index }));
+    const withoutProject = projects.filter((item) => item.id !== project.id);
+    const insertionIndex = Math.min(Math.max(project.orderIndex, 0), withoutProject.length);
+    const nextProjects = [...withoutProject];
+    nextProjects.splice(insertionIndex, 0, project);
+    const orderTimestamp = Date.now();
+    const orderedProjects = nextProjects.map((item, index) => ({
+      ...item,
+      orderIndex: index,
+      updatedAt: item.id === project.id ? project.updatedAt : new Date(orderTimestamp - index).toISOString(),
+    }));
 
     await Promise.all(orderedProjects.map(saveProjectToDatabase));
     setProjects(orderedProjects);
   };
 
-  const handleReorderProjects = async (reorderedProjects: Project[]) => {
-    await Promise.all(reorderedProjects.map(saveProjectToDatabase));
-    setProjects(reorderedProjects);
-  };
-
   const handleDeleteProject = async (id: string) => {
     const remainingProjects = projects
       .filter((item) => item.id !== id)
-      .map((item, index) => ({ ...item, orderIndex: index }));
+      .map((item, index) => ({
+        ...item,
+        orderIndex: index,
+        updatedAt: new Date(Date.now() - index).toISOString(),
+      }));
     await Promise.all(remainingProjects.map(saveProjectToDatabase));
     await deleteProjectFromDatabase(id);
     setProjects(remainingProjects);
@@ -2570,7 +2545,6 @@ export default function App() {
         projects={projects}
         onSave={handleSaveProject}
         onDelete={handleDeleteProject}
-        onReorder={handleReorderProjects}
         onLogout={handleLogout}
         siteContent={siteContent}
         onSaveSiteContent={handleSaveSiteContent}
