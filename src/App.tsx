@@ -27,6 +27,7 @@ import {
   MessageCircle,
   Phone,
   Linkedin,
+  GripVertical,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 
@@ -338,6 +339,35 @@ async function saveProjectToDatabase(project: Project) {
   }
 
   if (error) throw error;
+}
+
+async function saveProjectOrderToDatabase(projects: Project[]) {
+  if (!supabase) {
+    throw new Error('Supabase is not configured. Project order cannot be saved to the database.');
+  }
+  const database = supabase;
+
+  const orderTimestamp = Date.now();
+  await Promise.all(projects.map(async (project, index) => {
+    const { error } = await database
+      .from('portfolio_projects')
+      .update({
+        sort_order: index,
+        updated_at: new Date(orderTimestamp - index).toISOString(),
+      })
+      .eq('id', project.id);
+
+    if (isMissingProjectOrderColumn(error)) {
+      const fallback = await database
+        .from('portfolio_projects')
+        .update({ updated_at: new Date(orderTimestamp - index).toISOString() })
+        .eq('id', project.id);
+      if (fallback.error) throw fallback.error;
+      return;
+    }
+
+    if (error) throw error;
+  }));
 }
 
 async function deleteProjectFromDatabase(id: string) {
@@ -1480,6 +1510,7 @@ function AdminDashboardPage({
   projects,
   onSave,
   onDelete,
+  onReorder,
   onLogout,
   siteContent,
   onSaveSiteContent,
@@ -1488,6 +1519,7 @@ function AdminDashboardPage({
   projects: Project[];
   onSave: (project: Project) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onReorder: (projects: Project[]) => Promise<void>;
   onLogout: () => void;
   siteContent: SiteContent;
   onSaveSiteContent: (content: SiteContent) => void;
@@ -1499,13 +1531,15 @@ function AdminDashboardPage({
   const [description, setDescription] = useState('');
   const [url, setUrl] = useState('');
   const [images, setImages] = useState<string[]>([]);
-  const [orderNumber, setOrderNumber] = useState(1);
   const [message, setMessage] = useState('');
   const [localContent, setLocalContent] = useState<SiteContent>(siteContent);
   const [contentMessage, setContentMessage] = useState('');
   const [passwordMessage, setPasswordMessage] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [draggedProjectId, setDraggedProjectId] = useState<string | null>(null);
+  const draggedProjectIdRef = useRef<string | null>(null);
+  const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
     setLocalContent(siteContent);
@@ -1518,7 +1552,6 @@ function AdminDashboardPage({
       setDescription(editingProject.description);
       setUrl(editingProject.url || '');
       setImages(editingProject.images || []);
-      setOrderNumber(editingProject.orderIndex + 1);
       setMessage('Editing project');
       return;
     }
@@ -1527,9 +1560,8 @@ function AdminDashboardPage({
     setDescription('');
     setUrl('');
     setImages([]);
-    setOrderNumber(projects.length + 1);
     setMessage('');
-  }, [editingProject, projects.length]);
+  }, [editingProject]);
 
   const handleImageChange = (event: ChangeEvent<HTMLInputElement>) => {
     const files = event.target.files;
@@ -1570,14 +1602,9 @@ function AdminDashboardPage({
       setMessage('Title, description, and at least one image are required.');
       return;
     }
-    if (!Number.isInteger(orderNumber) || orderNumber < 1) {
-      setMessage('Order must be a whole number greater than or equal to 1.');
-      return;
-    }
-
     const project: Project = {
       id: editingProject?.id ?? generateToken(),
-      orderIndex: orderNumber - 1,
+      orderIndex: editingProject?.orderIndex ?? projects.length,
       title: title.trim(),
       category,
       description: description.trim(),
@@ -1599,10 +1626,35 @@ function AdminDashboardPage({
 
   const handleEdit = (project: Project) => {
     setEditingProject(project);
+    window.requestAnimationFrame(() => formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   const handleCancelEdit = () => {
     setEditingProject(null);
+  };
+
+  const handleProjectDrop = (targetProjectId: string) => {
+    const sourceProjectId = draggedProjectIdRef.current;
+    if (!sourceProjectId || sourceProjectId === targetProjectId) return;
+
+    const reorderedProjects = [...projects];
+    const sourceIndex = reorderedProjects.findIndex((project) => project.id === sourceProjectId);
+    const targetIndex = reorderedProjects.findIndex((project) => project.id === targetProjectId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+
+    const [draggedProject] = reorderedProjects.splice(sourceIndex, 1);
+    reorderedProjects.splice(targetIndex, 0, draggedProject);
+    const normalizedProjects = reorderedProjects.map((project, index) => ({
+      ...project,
+      orderIndex: index,
+    }));
+
+    draggedProjectIdRef.current = null;
+    setDraggedProjectId(null);
+    void onReorder(normalizedProjects).catch((error) => {
+      console.error('Unable to save project order to Supabase.', error);
+      setMessage('Project order could not be saved. Please try again.');
+    });
   };
 
   return (
@@ -1634,7 +1686,7 @@ function AdminDashboardPage({
         <div className="grid gap-8 xl:grid-cols-[1.1fr_0.9fr]">
           <div className="rounded-3xl border border-white/10 bg-white/5 p-8">
             <h2 className="text-2xl font-bold text-white">{editingProject ? 'Edit Project' : 'Add New Project'}</h2>
-            <form onSubmit={handleSubmit} className="mt-6 space-y-6">
+            <form ref={formRef} onSubmit={handleSubmit} className="mt-6 space-y-6">
               <div>
                 <label className="block text-sm font-medium text-slate-200">Title</label>
                 <input
@@ -1657,18 +1709,6 @@ function AdminDashboardPage({
                     </option>
                   ))}
                 </select>
-              </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-200">Order</label>
-                <input
-                  type="number"
-                  min="1"
-                  step="1"
-                  value={orderNumber}
-                  onChange={(e) => setOrderNumber(Number(e.target.value))}
-                  className="mt-2 w-full rounded-2xl border border-white/10 bg-slate-900 px-4 py-3 text-white outline-none transition focus:border-brand-400"
-                />
-                <p className="mt-2 text-xs text-slate-500">Enter the position where this project should appear.</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-slate-200">Description</label>
@@ -1743,10 +1783,26 @@ function AdminDashboardPage({
                 projects.map((project, index) => (
                   <div
                     key={project.id}
-                    className="rounded-3xl border border-white/10 bg-slate-900 p-4 transition"
+                    draggable
+                    onDragStart={(event) => {
+                      draggedProjectIdRef.current = project.id;
+                      event.dataTransfer.effectAllowed = 'move';
+                      event.dataTransfer.setData('text/plain', project.id);
+                      setDraggedProjectId(project.id);
+                    }}
+                    onDragEnd={() => {
+                      setDraggedProjectId(null);
+                    }}
+                    onDragOver={(event) => event.preventDefault()}
+                    onDrop={(event) => {
+                      event.preventDefault();
+                      handleProjectDrop(project.id);
+                    }}
+                    className={`cursor-grab rounded-3xl border border-white/10 bg-slate-900 p-4 transition active:cursor-grabbing ${draggedProjectId === project.id ? 'opacity-50' : ''}`}
                   >
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-start">
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/5 text-sm font-semibold text-slate-300" title="Project order">
+                      <div className="flex items-center gap-2 text-slate-500" title="Drag to reorder">
+                        <GripVertical className="h-5 w-5 shrink-0" />
                         {index + 1}
                       </div>
                       {project.images.length > 0 ? (
@@ -2437,6 +2493,7 @@ export default function App() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [siteContent, setSiteContent] = useState<SiteContent>(() => loadSiteContent());
   const [adminPassword, setAdminPassword] = useState<string>(() => loadAdminPassword());
+  const orderSaveVersionRef = useRef(0);
 
   useEffect(() => {
     let active = true;
@@ -2505,7 +2562,10 @@ export default function App() {
 
   const handleSaveProject = async (project: Project) => {
     const withoutProject = projects.filter((item) => item.id !== project.id);
-    const insertionIndex = Math.min(Math.max(project.orderIndex, 0), withoutProject.length);
+    const existingProject = projects.find((item) => item.id === project.id);
+    const insertionIndex = existingProject
+      ? Math.min(existingProject.orderIndex, withoutProject.length)
+      : withoutProject.length;
     const nextProjects = [...withoutProject];
     nextProjects.splice(insertionIndex, 0, project);
     const orderTimestamp = Date.now();
@@ -2519,6 +2579,20 @@ export default function App() {
     setProjects(orderedProjects);
   };
 
+  const handleReorderProjects = async (reorderedProjects: Project[]) => {
+    const previousProjects = projects;
+    const requestVersion = orderSaveVersionRef.current + 1;
+    orderSaveVersionRef.current = requestVersion;
+    setProjects(reorderedProjects);
+    try {
+      await saveProjectOrderToDatabase(reorderedProjects);
+    } catch (error) {
+      if (orderSaveVersionRef.current !== requestVersion) return;
+      setProjects(previousProjects);
+      throw error;
+    }
+  };
+
   const handleDeleteProject = async (id: string) => {
     const remainingProjects = projects
       .filter((item) => item.id !== id)
@@ -2527,7 +2601,7 @@ export default function App() {
         orderIndex: index,
         updatedAt: new Date(Date.now() - index).toISOString(),
       }));
-    await Promise.all(remainingProjects.map(saveProjectToDatabase));
+    await saveProjectOrderToDatabase(remainingProjects);
     await deleteProjectFromDatabase(id);
     setProjects(remainingProjects);
   };
@@ -2545,6 +2619,7 @@ export default function App() {
         projects={projects}
         onSave={handleSaveProject}
         onDelete={handleDeleteProject}
+        onReorder={handleReorderProjects}
         onLogout={handleLogout}
         siteContent={siteContent}
         onSaveSiteContent={handleSaveSiteContent}
