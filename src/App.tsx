@@ -953,7 +953,7 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
         </div>
 
         {/* Orbital Constellation (ironleadagency style) */}
-        <div className="relative flex justify-center items-center py-4 reveal reveal-right reveal-zoom">
+        <div className="relative flex justify-center items-center py-4">
           <HeroOrbits />
         </div>
       </div>

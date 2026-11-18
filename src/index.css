@@ -96,32 +96,59 @@
     transition-delay: 0.9s;
   }
 
-  @keyframes orbit-spin {
+  @keyframes orbit-spin-reverse {
     from {
-      transform: rotate(0deg);
+      transform: translate(-50%, -50%) rotate(0deg);
     }
     to {
-      transform: rotate(360deg);
+      transform: translate(-50%, -50%) rotate(-360deg);
+    }
+  }
+
+  @keyframes orbit-spin-forward {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @keyframes orbit-face-forward {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(360deg);
+    }
+  }
+
+  @keyframes orbit-face-reverse {
+    from {
+      transform: translate(-50%, -50%) rotate(0deg);
+    }
+    to {
+      transform: translate(-50%, -50%) rotate(-360deg);
     }
   }
 
   .animate-orbit-1 {
-    animation: orbit-spin 32s linear infinite reverse;
+    animation: orbit-spin-reverse 30s linear infinite;
   }
   .animate-orbit-1-face {
-    animation: orbit-spin 32s linear infinite normal;
+    animation: orbit-face-forward 30s linear infinite;
   }
   .animate-orbit-2 {
-    animation: orbit-spin 42s linear infinite normal;
+    animation: orbit-spin-forward 40s linear infinite;
   }
   .animate-orbit-2-face {
-    animation: orbit-spin 42s linear infinite reverse;
+    animation: orbit-face-reverse 40s linear infinite;
   }
   .animate-orbit-3 {
-    animation: orbit-spin 54s linear infinite normal;
+    animation: orbit-spin-forward 52s linear infinite;
   }
   .animate-orbit-3-face {
-    animation: orbit-spin 54s linear infinite reverse;
+    animation: orbit-face-reverse 52s linear infinite;
   }
 
   @media (prefers-reduced-motion: reduce) {

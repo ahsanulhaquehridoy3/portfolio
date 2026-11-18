@@ -27,16 +27,16 @@ export function PinParticleCore() {
     canvas.height = height * 2;
     ctx.scale(2, 2);
 
-    // Center of pin head at (60, 48)
+    // Exact center of the pin head circle is at (60, 60)
     const cx = 60;
-    const cy = 48;
-    const r = 28;
-    const holeR = 10;
-    const tipY = 98;
+    const cy = 60;
+    const r = 25;
+    const holeR = 9.5;
+    const tipY = 105;
 
     const isInsidePin = (x: number, y: number): boolean => {
       const dFromCenter = Math.hypot(x - cx, y - cy);
-      // Center cutout hole
+      // Center circular cutout hole
       if (dFromCenter < holeR) return false;
 
       // Upper semi-circle
@@ -44,7 +44,7 @@ export function PinParticleCore() {
         return dFromCenter <= r;
       }
 
-      // Lower triangle pointing down to (60, tipY)
+      // Lower triangle tapering to (60, tipY)
       if (y > tipY) return false;
 
       const progress = (y - cy) / (tipY - cy);
@@ -52,11 +52,11 @@ export function PinParticleCore() {
       return Math.abs(x - cx) <= halfWidth;
     };
 
-    // Generate ~380 dense sparkling particles
+    // Generate ~400 dense golden and diamond particles
     const particles: Particle[] = [];
     const colors = ['#fde047', '#facc15', '#eab308', '#ffffff', '#fef08a'];
 
-    while (particles.length < 380) {
+    while (particles.length < 400) {
       const rx = Math.random() * width;
       const ry = Math.random() * height;
       if (isInsidePin(rx, ry)) {
@@ -78,14 +78,14 @@ export function PinParticleCore() {
       ctx.clearRect(0, 0, width, height);
 
       // Subtle ambient gold glow behind pin
-      const radial = ctx.createRadialGradient(cx, cy, 6, cx, cy, 42);
-      radial.addColorStop(0, 'rgba(250, 204, 21, 0.35)');
+      const radial = ctx.createRadialGradient(cx, cy, 6, cx, cy, 38);
+      radial.addColorStop(0, 'rgba(250, 204, 21, 0.38)');
       radial.addColorStop(0.6, 'rgba(234, 179, 8, 0.12)');
       radial.addColorStop(1, 'rgba(234, 179, 8, 0)');
       ctx.fillStyle = radial;
       ctx.fillRect(0, 0, width, height);
 
-      // Render glowing particle dots
+      // Render shimmering particles
       for (const p of particles) {
         p.alpha = p.baseAlpha + Math.sin(time * p.speed * 20 + p.x) * 0.28;
         ctx.fillStyle = p.color;
@@ -107,13 +107,12 @@ export function PinParticleCore() {
   }, []);
 
   return (
-    <div className="relative flex items-center justify-center pointer-events-none">
-      <div className="absolute w-24 h-24 rounded-full bg-amber-400/25 blur-xl -translate-y-2" />
-      {/* Positioned so pin head center (60, 48) aligns exactly with parent center (0, 0) */}
+    <div className="relative w-[120px] h-[120px] flex items-center justify-center pointer-events-none">
+      <div className="absolute w-24 h-24 rounded-full bg-amber-400/25 blur-xl pointer-events-none" />
       <canvas
         ref={canvasRef}
         style={{ width: 120, height: 120 }}
-        className="relative z-10 -translate-x-[60px] -translate-y-[48px] drop-shadow-[0_0_20px_rgba(250,204,21,0.65)]"
+        className="w-[120px] h-[120px] drop-shadow-[0_0_24px_rgba(250,204,21,0.65)]"
       />
     </div>
   );
@@ -121,22 +120,25 @@ export function PinParticleCore() {
 
 export function HeroOrbits() {
   return (
-    <div className="relative flex items-center justify-center w-full max-w-[480px] h-[440px] md:h-[480px] mx-auto select-none group">
+    <div className="relative w-full max-w-[480px] h-[460px] md:h-[500px] flex items-center justify-center mx-auto select-none group">
       {/* Background ambient lighting */}
       <div className="absolute w-[360px] h-[360px] rounded-full bg-brand-600/10 blur-3xl pointer-events-none" />
       <div className="absolute w-[240px] h-[240px] rounded-full bg-amber-500/10 blur-2xl pointer-events-none" />
 
-      {/* Orbit Coordinate Plane (Dead center: 0, 0) */}
+      {/* Orbit Container with origin at center */}
       <div className="relative w-full h-full flex items-center justify-center scale-[0.82] sm:scale-95 lg:scale-100 transition-transform origin-center">
-        
-        {/* EXACT CENTER POINT: Map Pin */}
-        <div className="absolute left-1/2 top-1/2 z-20">
+
+        {/* 1. DEAD CENTER LOCATION PIN: (left: 50%, top: 50%) with -50% -50% translate */}
+        <div
+          className="absolute left-1/2 top-1/2 z-20 pointer-events-none"
+          style={{ transform: 'translate(-50%, -50%)' }}
+        >
           <PinParticleCore />
         </div>
 
-        {/* Orbit 1: Inner (diameter: 180px, radius: 90px) */}
+        {/* 2. ORBIT 1: Inner (diameter: 180px, radius: 90px) */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/20 animate-orbit-1 group-hover:[animation-play-state:paused]"
+          className="absolute left-1/2 top-1/2 rounded-full border border-dashed border-white/20 animate-orbit-1 group-hover:[animation-play-state:paused]"
           style={{ width: 180, height: 180 }}
         >
           {/* Maps (Angle: 35deg - Upper Right) */}
@@ -146,7 +148,7 @@ export function HeroOrbits() {
               transform: 'rotate(35deg) translateY(-90px) rotate(-35deg)',
             }}
           >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 animate-orbit-1-face group-hover:[animation-play-state:paused]">
+            <div className="absolute left-0 top-0 animate-orbit-1-face group-hover:[animation-play-state:paused]">
               <a
                 href="#services"
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700/80 bg-[#0d1829]/95 px-2.5 py-1 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.4)] hover:scale-105"
@@ -164,7 +166,7 @@ export function HeroOrbits() {
               transform: 'rotate(215deg) translateY(-90px) rotate(-215deg)',
             }}
           >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 animate-orbit-1-face group-hover:[animation-play-state:paused]">
+            <div className="absolute left-0 top-0 animate-orbit-1-face group-hover:[animation-play-state:paused]">
               <a
                 href="#services"
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700/80 bg-[#0d1829]/95 px-2.5 py-1 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.4)] hover:scale-105"
@@ -176,9 +178,9 @@ export function HeroOrbits() {
           </div>
         </div>
 
-        {/* Orbit 2: Middle (diameter: 290px, radius: 145px) */}
+        {/* 3. ORBIT 2: Middle (diameter: 290px, radius: 145px) */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/20 animate-orbit-2 group-hover:[animation-play-state:paused]"
+          className="absolute left-1/2 top-1/2 rounded-full border border-dashed border-white/20 animate-orbit-2 group-hover:[animation-play-state:paused]"
           style={{ width: 290, height: 290 }}
         >
           {/* Local Service Ads (Angle: 95deg - Top) */}
@@ -188,7 +190,7 @@ export function HeroOrbits() {
               transform: 'rotate(95deg) translateY(-145px) rotate(-95deg)',
             }}
           >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 animate-orbit-2-face group-hover:[animation-play-state:paused]">
+            <div className="absolute left-0 top-0 animate-orbit-2-face group-hover:[animation-play-state:paused]">
               <a
                 href="#services"
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700/80 bg-[#0d1829]/95 px-2.5 py-1 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.4)] hover:scale-105"
@@ -206,7 +208,7 @@ export function HeroOrbits() {
               transform: 'rotate(285deg) translateY(-145px) rotate(-285deg)',
             }}
           >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 animate-orbit-2-face group-hover:[animation-play-state:paused]">
+            <div className="absolute left-0 top-0 animate-orbit-2-face group-hover:[animation-play-state:paused]">
               <a
                 href="#services"
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700/80 bg-[#0d1829]/95 px-2.5 py-1 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.4)] hover:scale-105"
@@ -218,9 +220,9 @@ export function HeroOrbits() {
           </div>
         </div>
 
-        {/* Orbit 3: Outer (diameter: 410px, radius: 205px) */}
+        {/* 4. ORBIT 3: Outer (diameter: 410px, radius: 205px) */}
         <div
-          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full border border-dashed border-white/15 animate-orbit-3 group-hover:[animation-play-state:paused]"
+          className="absolute left-1/2 top-1/2 rounded-full border border-dashed border-white/15 animate-orbit-3 group-hover:[animation-play-state:paused]"
           style={{ width: 410, height: 410 }}
         >
           {/* Websites (Angle: 185deg - Left) */}
@@ -230,7 +232,7 @@ export function HeroOrbits() {
               transform: 'rotate(185deg) translateY(-205px) rotate(-185deg)',
             }}
           >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 animate-orbit-3-face group-hover:[animation-play-state:paused]">
+            <div className="absolute left-0 top-0 animate-orbit-3-face group-hover:[animation-play-state:paused]">
               <a
                 href="#services"
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700/80 bg-[#0d1829]/95 px-2.5 py-1 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.4)] hover:scale-105"
@@ -248,7 +250,7 @@ export function HeroOrbits() {
               transform: 'rotate(15deg) translateY(-205px) rotate(-15deg)',
             }}
           >
-            <div className="absolute -translate-x-1/2 -translate-y-1/2 animate-orbit-3-face group-hover:[animation-play-state:paused]">
+            <div className="absolute left-0 top-0 animate-orbit-3-face group-hover:[animation-play-state:paused]">
               <a
                 href="#services"
                 className="flex items-center gap-1.5 whitespace-nowrap rounded-lg border border-slate-700/80 bg-[#0d1829]/95 px-2.5 py-1 text-xs font-bold text-white shadow-[0_4px_16px_rgba(0,0,0,0.6)] backdrop-blur transition-all duration-300 hover:border-amber-400 hover:shadow-[0_0_15px_rgba(250,204,21,0.4)] hover:scale-105"
