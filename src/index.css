@@ -151,6 +151,40 @@
     animation: orbit-face-reverse 52s linear infinite;
   }
 
+  /* Rotating light around the video (from ironleadagency.com) */
+  .vsl-frame {
+    position: relative;
+    padding: 3px;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+  }
+  .vsl-frame::before {
+    content: '';
+    position: absolute;
+    inset: -60%;
+    pointer-events: none;
+    background: conic-gradient(
+      rgba(255, 216, 77, 0.95),
+      rgba(255, 216, 77, 0.35) 50deg,
+      rgba(22, 52, 85, 0.12) 110deg 290deg,
+      rgba(255, 216, 77, 0.35) 330deg,
+      rgba(255, 216, 77, 0.95)
+    );
+    animation: rim-spin 7s linear infinite;
+  }
+  .vsl-frame > * {
+    position: relative;
+    z-index: 1;
+    border-radius: 15px;
+    overflow: hidden;
+  }
+  @keyframes rim-spin {
+    to {
+      transform: rotate(1turn);
+    }
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html:focus-within {
       scroll-behavior: auto;
