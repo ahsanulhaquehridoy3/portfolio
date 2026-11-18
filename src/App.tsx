@@ -28,8 +28,11 @@ import {
   Phone,
   Linkedin,
   GripVertical,
+  ShieldCheck,
+  UserCheck,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
+import { HeroOrbits } from './HeroOrbits';
 
 const WHATSAPP = 'https://wa.me/8801785778309';
 const PHONE = '+8801785778309';
@@ -945,63 +948,52 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
           </div>
         </div>
 
-        {/* Portrait */}
-        <div className="relative flex justify-center reveal reveal-right reveal-zoom">
-          <div className="relative w-full max-w-sm">
-            <div className="absolute -inset-3 rounded-[2.5rem] bg-gradient-to-br from-brand-500/40 to-accent-500/30 blur-2xl" />
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/20 shadow-2xl">
-              <div className="aspect-[4/5] w-full bg-gradient-to-br from-slate-800 via-slate-700 to-brand-950">
-                <img
-                  src="/WhatsApp_Image_2026-07-02_at_11.43.33_PM.jpeg"
-                  alt="Ahsanul Haque Hridoy — Paid Media Expert"
-                  className="h-full w-full object-cover object-top"
-                  loading="eager"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-brand-950/80 via-brand-900/25 to-transparent" />
-                <div className="absolute bottom-0 left-0 right-0 p-5">
-                  <div className="rounded-2xl border border-white/10 bg-slate-950/40 p-4 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)]">
-                    <p className="font-display text-base font-bold text-white">Ahsanul Haque Hridoy</p>
-                    <p className="mt-0.5 text-xs text-slate-100">Paid Media Expert · 4+ years · Google & Facebook certified</p>
-                  </div>
-                </div>
-              </div>
-            </div>
+        {/* Orbital Constellation (ironleadagency style) */}
+        <div className="relative flex justify-center items-center reveal reveal-right reveal-zoom">
+          <HeroOrbits />
+        </div>
+      </div>
 
-            <div className="absolute -left-6 top-8 hidden rounded-2xl border border-white/10 bg-slate-950/30 p-3.5 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)] sm:block animate-floaty">
-              <div className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-800/80 text-white shadow-inner shadow-black/20">
-                  <ArrowUpRight className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs text-slate-100">Campaigns launched</p>
-                  <p className="text-sm font-bold text-white">50+</p>
-                </div>
-              </div>
-            </div>
+      {/* Trust Chips (ironleadagency style) */}
+      <div className="relative z-10 mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 px-5 md:grid-cols-3">
+        <div className="reveal reveal-up rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur transition-all duration-300 hover:border-amber-400/40 hover:bg-white/[0.06] flex items-start gap-4">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
+            <ShieldCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white">White-label Friendly</h4>
+            <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+              I work behind the scenes as your fulfillment partner, or directly with your business. Your call.
+            </p>
+          </div>
+        </div>
 
-            <div className="absolute -right-6 top-1/2 hidden -translate-y-1/2 rounded-2xl border border-white/10 bg-slate-950/30 p-3.5 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)] sm:block animate-floaty" style={{ animationDelay: '1.5s' }}>
-              <div className="flex items-center gap-2.5">
-                <span className="grid h-9 w-9 place-items-center rounded-lg bg-slate-800/80 text-white shadow-inner shadow-black/20">
-                  <TrendingUp className="h-5 w-5" />
-                </span>
-                <div>
-                  <p className="text-xs text-slate-100">Repeat clients</p>
-                  <p className="text-sm font-bold text-white">15+</p>
-                </div>
-              </div>
-            </div>
+        <div className="reveal reveal-up reveal-delay-100 rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur transition-all duration-300 hover:border-amber-400/40 hover:bg-white/[0.06] flex items-start gap-4">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
+            <LineChart className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white">Transparent Reporting</h4>
+            <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+              Clear, regular updates on performance, conversion tracking, and real ROI with no black boxes.
+            </p>
+          </div>
+        </div>
 
-            <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-slate-950/30 px-4 py-2 backdrop-blur-3xl shadow-[0_20px_80px_-45px_rgba(15,23,42,0.8)]">
-              <span className="flex items-center gap-1.5 text-xs font-semibold text-white">
-                <CheckCircle2 className="h-3.5 w-3.5 text-brand-300" />
-                Google & Facebook Certified
-              </span>
-            </div>
+        <div className="reveal reveal-up reveal-delay-200 rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur transition-all duration-300 hover:border-amber-400/40 hover:bg-white/[0.06] flex items-start gap-4">
+          <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
+            <UserCheck className="h-5 w-5" />
+          </div>
+          <div>
+            <h4 className="text-sm font-bold text-white">Dedicated Management</h4>
+            <p className="mt-1 text-xs text-slate-400 leading-relaxed">
+              A real dedicated expert who knows your accounts and strategy, not a rotating support team.
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="relative z-10 mx-auto mt-20 grid max-w-6xl grid-cols-2 gap-4 px-5 md:grid-cols-4">
+      <div className="relative z-10 mx-auto mt-12 grid max-w-6xl grid-cols-2 gap-4 px-5 md:grid-cols-4">
         {stats.map((s, index) => (
           <div key={s.label} className={`reveal reveal-scale reveal-delay-${(index + 1) * 100} rounded-2xl border border-white/15 bg-white/5 p-5 text-center backdrop-blur`}>
             <p className="font-display text-3xl font-extrabold text-brand-400">{s.value}</p>

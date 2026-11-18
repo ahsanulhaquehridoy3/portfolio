@@ -95,6 +95,35 @@
   .reveal-delay-900 {
     transition-delay: 0.9s;
   }
+
+  @keyframes orbit-spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+  }
+
+  .animate-orbit-1 {
+    animation: orbit-spin 32s linear infinite reverse;
+  }
+  .animate-orbit-1-face {
+    animation: orbit-spin 32s linear infinite normal;
+  }
+  .animate-orbit-2 {
+    animation: orbit-spin 42s linear infinite normal;
+  }
+  .animate-orbit-2-face {
+    animation: orbit-spin 42s linear infinite reverse;
+  }
+  .animate-orbit-3 {
+    animation: orbit-spin 54s linear infinite normal;
+  }
+  .animate-orbit-3-face {
+    animation: orbit-spin 54s linear infinite reverse;
+  }
+
   @media (prefers-reduced-motion: reduce) {
     html:focus-within {
       scroll-behavior: auto;
@@ -104,10 +133,17 @@
     .reveal-right,
     .reveal-up,
     .reveal-zoom,
-    .reveal-scale {
+    .reveal-scale,
+    .animate-orbit-1,
+    .animate-orbit-1-face,
+    .animate-orbit-2,
+    .animate-orbit-2-face,
+    .animate-orbit-3,
+    .animate-orbit-3-face {
       transition: none !important;
       transform: none !important;
       opacity: 1 !important;
+      animation: none !important;
     }
   }
 }
