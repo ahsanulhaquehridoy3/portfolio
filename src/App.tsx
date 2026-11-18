@@ -904,31 +904,35 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
       <div className="absolute -right-40 top-10 h-96 w-96 rounded-full bg-brand-600/25 blur-3xl" />
       <div className="absolute -left-40 top-32 h-96 w-96 rounded-full bg-brand-800/20 blur-3xl" />
 
-      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-12 px-5 md:grid-cols-2">
-        <div className="reveal reveal-left">
-          <span className="reveal reveal-up reveal-delay-100 inline-flex items-center gap-2 rounded-full border border-brand-400/40 bg-brand-500/10 px-3.5 py-1.5 text-xs font-semibold text-brand-300 backdrop-blur">
-            <Sparkles className="h-3.5 w-5" />
-            {content.badge}
+      <div className="relative z-10 mx-auto grid max-w-6xl items-center gap-8 lg:gap-14 px-5 lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="reveal reveal-left max-w-xl">
+          <span className="reveal reveal-up reveal-delay-100 inline-flex items-center gap-2 rounded-full border border-white/15 bg-white/5 px-3.5 py-1.5 text-xs font-semibold text-slate-300 backdrop-blur">
+            <Sparkles className="h-3.5 w-3.5 text-amber-400" />
+            {content.badge || 'SEO · Google Ads · Local Marketing, Fully Managed'}
           </span>
-          <h1 className={`reveal reveal-up reveal-delay-150 mt-5 font-display text-4xl font-extrabold leading-[1.08] tracking-tight ${textColor} text-balance sm:text-5xl md:text-6xl`}>
-            {content.headline.includes('real business growth') ? (
-              <>{content.headline}</>
-            ) : (
-              <>{content.headline}</>
-            )}
+          <h1 className="reveal reveal-up reveal-delay-150 mt-5 font-display text-4xl font-extrabold leading-[1.1] tracking-tight text-white text-balance sm:text-5xl lg:text-[54px]">
+            Marketing that gets your{' '}
+            <span className="text-amber-400">business</span> real results
           </h1>
 
-            <p className={`reveal reveal-up reveal-delay-200 mt-5 max-w-xl text-lg leading-relaxed ${subText}`}>
-              {content.description}
-            </p>
+          <p className="reveal reveal-up reveal-delay-200 mt-5 text-base md:text-lg leading-relaxed text-slate-400">
+            {content.description ||
+              'I run the SEO, ads, and local marketing behind the scenes, so you can focus on your customers, not campaign management.'}
+          </p>
 
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <a href="#why" className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-full bg-brand-500 px-6 py-3.5 text-sm font-semibold text-white shadow-lg transition hover:bg-brand-600">
-              {content.ctaPrimary}
-              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+          <div className="mt-8 flex flex-wrap items-center gap-3.5">
+            <a
+              href="#contact"
+              className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-[0_0_25px_rgba(251,191,36,0.35)] transition-all duration-200 hover:bg-amber-300 hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] hover:scale-[1.02]"
+            >
+              Get a Free Quote
+              <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
             </a>
-            <a href="#work" className="reveal reveal-up reveal-delay-300 inline-flex items-center gap-2 rounded-full border border-fuchsia-300/50 bg-gradient-to-r from-fuchsia-500 via-violet-500 to-cyan-400 px-6 py-3.5 text-sm font-semibold text-white shadow-[0_18px_35px_-14px_rgba(168,85,247,0.9)] ring-1 ring-white/30 transition-all duration-200 hover:scale-[1.03] hover:shadow-[0_20px_40px_-12px_rgba(34,211,238,0.8)]">
-              {content.ctaSecondary}
+            <a
+              href="#work"
+              className="reveal reveal-up reveal-delay-300 inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 px-6 py-3.5 text-sm font-semibold text-white backdrop-blur transition-all duration-200 hover:bg-white/10 hover:border-white/30"
+            >
+              See How It Works
             </a>
           </div>
 
@@ -949,13 +953,13 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
         </div>
 
         {/* Orbital Constellation (ironleadagency style) */}
-        <div className="relative flex justify-center items-center reveal reveal-right reveal-zoom">
+        <div className="relative flex justify-center items-center py-4 reveal reveal-right reveal-zoom">
           <HeroOrbits />
         </div>
       </div>
 
       {/* Trust Chips (ironleadagency style) */}
-      <div className="relative z-10 mx-auto mt-14 grid max-w-6xl grid-cols-1 gap-4 px-5 md:grid-cols-3">
+      <div className="relative z-10 mx-auto mt-20 md:mt-24 grid max-w-6xl grid-cols-1 gap-4 px-5 md:grid-cols-3">
         <div className="reveal reveal-up rounded-2xl border border-white/10 bg-white/[0.03] p-5 backdrop-blur transition-all duration-300 hover:border-amber-400/40 hover:bg-white/[0.06] flex items-start gap-4">
           <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-amber-400/10 text-amber-400 border border-amber-400/20">
             <ShieldCheck className="h-5 w-5" />
