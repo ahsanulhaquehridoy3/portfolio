@@ -35,6 +35,7 @@ import {
 import { supabase } from './lib/supabase';
 import { HeroOrbits } from './HeroOrbits';
 import { PlatformsSection } from './PlatformsSection';
+import { ProcessSection } from './ProcessSection';
 
 const WHATSAPP = 'https://wa.me/8801785778309';
 const PHONE = '+8801785778309';
@@ -2683,6 +2684,7 @@ export default function App() {
         <WhyMe />
         <Industries />
         <Reviews />
+        <ProcessSection />
         <FAQ />
         <Contact />
       </main>
