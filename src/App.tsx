@@ -1047,12 +1047,10 @@ function VideoIntro() {
       {/* Background ambient light */}
       <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-[450px] w-[600px] rounded-full bg-brand-600/10 blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-5 text-center">
-        {/* Eyebrow, Title and Subtitle matching ironleadagency.com */}
-        <div className="reveal reveal-up">
-          <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">
-            Watch
-          </p>
+      <div className="relative z-10 mx-auto max-w-7xl px-5">
+        {/* Title centered above */}
+        <div className="reveal reveal-up text-center max-w-3xl mx-auto">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">Watch</p>
           <h2 className="mt-3 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
             See how we drive results
           </h2>
@@ -1061,43 +1059,48 @@ function VideoIntro() {
           </p>
         </div>
 
-        {/* Video Frame with rotating conic border (from ironleadagency.com) */}
-        <div className="reveal reveal-scale mt-10 md:mt-12 mx-auto max-w-3xl">
-          <div className="vsl-frame">
-            {isPlaying ? (
-              <div className="aspect-video w-full overflow-hidden rounded-[13px] bg-black">
-                <iframe
-                  className="h-full w-full border-0"
-                  src="https://www.youtube.com/embed/wdVo_t7B6UM?autoplay=1&rel=0"
-                  title="See how we drive results"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                  allowFullScreen
-                />
-              </div>
-            ) : (
-              <div
-                onClick={() => setIsPlaying(true)}
-                className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[13px] bg-slate-900 flex items-center justify-center transition-all duration-300"
-                style={{
-                  backgroundImage: `linear-gradient(rgba(10, 20, 35, 0.4), rgba(10, 20, 35, 0.65)), url('https://img.youtube.com/vi/wdVo_t7B6UM/maxresdefault.jpg')`,
-                  backgroundPosition: 'center',
-                  backgroundSize: 'cover',
-                  backgroundRepeat: 'no-repeat',
-                }}
-              >
-                {/* Center Play Button (exact icon styling from ironleadagency.com) */}
-                <div className="relative z-10 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border-2 border-white/40 bg-white/15 backdrop-blur-md shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-400 group-hover:shadow-[0_0_35px_rgba(250,204,21,0.6)]">
-                  <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-white text-white transition-colors duration-300 group-hover:fill-slate-950 group-hover:text-slate-950 ml-1" />
-                </div>
+        {/* 2-column: video LEFT, HeroOrbits RIGHT */}
+        <div className="mt-12 md:mt-16 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
 
-                {/* Duration Caption Badge at the bottom */}
-                <div className="absolute bottom-5 left-0 right-0 z-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-white/90 drop-shadow">
-                  <Play className="h-3 w-3 fill-amber-400 text-amber-400" />
-                  <span>3 min watch</span>
+          <div className="reveal reveal-left w-full max-w-xl mx-auto lg:max-w-none">
+            <div className="vsl-frame w-full">
+              {isPlaying ? (
+                <div className="aspect-video w-full overflow-hidden rounded-[13px] bg-black">
+                  <iframe
+                    className="h-full w-full border-0"
+                    src="https://www.youtube.com/embed/wdVo_t7B6UM?autoplay=1&rel=0"
+                    title="See how we drive results"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                    allowFullScreen
+                  />
                 </div>
-              </div>
-            )}
+              ) : (
+                <div
+                  onClick={() => setIsPlaying(true)}
+                  className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[13px] bg-slate-900 flex items-center justify-center transition-all duration-300"
+                  style={{
+                    backgroundImage: `linear-gradient(rgba(10, 20, 35, 0.4), rgba(10, 20, 35, 0.65)), url('https://img.youtube.com/vi/wdVo_t7B6UM/maxresdefault.jpg')`,
+                    backgroundPosition: 'center',
+                    backgroundSize: 'cover',
+                    backgroundRepeat: 'no-repeat',
+                  }}
+                >
+                  <div className="relative z-10 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border-2 border-white/40 bg-white/15 backdrop-blur-md shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-400 group-hover:shadow-[0_0_35px_rgba(250,204,21,0.6)]">
+                    <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-white text-white transition-colors duration-300 group-hover:fill-slate-950 group-hover:text-slate-950 ml-1" />
+                  </div>
+                  <div className="absolute bottom-5 left-0 right-0 z-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-white/90 drop-shadow">
+                    <Play className="h-3 w-3 fill-amber-400 text-amber-400" />
+                    <span>3 min watch</span>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
+
+          <div className="reveal reveal-right flex justify-center items-center w-full">
+            <HeroOrbits />
+          </div>
+
         </div>
       </div>
     </section>
