@@ -2679,12 +2679,12 @@ export default function App() {
         <VideoIntro />
         <PlatformsSection />
         <About content={siteContent.about} />
+        <ProcessSection />
         <Services />
         <Work projects={projects} />
         <WhyMe />
         <Industries />
         <Reviews />
-        <ProcessSection />
         <FAQ />
         <Contact />
       </main>
