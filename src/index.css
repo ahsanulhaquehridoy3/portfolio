@@ -98,57 +98,63 @@
 
   @keyframes orbit-spin-reverse {
     from {
-      transform: translate(-50%, -50%) rotate(0deg);
+      transform: rotate3d(0, 0, 1, 0deg);
     }
     to {
-      transform: translate(-50%, -50%) rotate(-360deg);
+      transform: rotate3d(0, 0, 1, -360deg);
     }
   }
 
   @keyframes orbit-spin-forward {
     from {
-      transform: translate(-50%, -50%) rotate(0deg);
+      transform: rotate3d(0, 0, 1, 0deg);
     }
     to {
-      transform: translate(-50%, -50%) rotate(360deg);
+      transform: rotate3d(0, 0, 1, 360deg);
     }
   }
 
   @keyframes orbit-face-forward {
     from {
-      transform: translate(-50%, -50%) rotate(0deg);
+      transform: translate3d(-50%, -50%, 0) rotate3d(0, 0, 1, 0deg);
     }
     to {
-      transform: translate(-50%, -50%) rotate(360deg);
+      transform: translate3d(-50%, -50%, 0) rotate3d(0, 0, 1, 360deg);
     }
   }
 
   @keyframes orbit-face-reverse {
     from {
-      transform: translate(-50%, -50%) rotate(0deg);
+      transform: translate3d(-50%, -50%, 0) rotate3d(0, 0, 1, 0deg);
     }
     to {
-      transform: translate(-50%, -50%) rotate(-360deg);
+      transform: translate3d(-50%, -50%, 0) rotate3d(0, 0, 1, -360deg);
     }
   }
 
   .animate-orbit-1 {
-    animation: orbit-spin-reverse 30s linear infinite;
+    animation: orbit-spin-reverse 16s linear infinite;
+    will-change: transform;
   }
   .animate-orbit-1-face {
-    animation: orbit-face-forward 30s linear infinite;
+    animation: orbit-face-forward 16s linear infinite;
+    will-change: transform;
   }
   .animate-orbit-2 {
-    animation: orbit-spin-forward 40s linear infinite;
+    animation: orbit-spin-forward 24s linear infinite;
+    will-change: transform;
   }
   .animate-orbit-2-face {
-    animation: orbit-face-reverse 40s linear infinite;
+    animation: orbit-face-reverse 24s linear infinite;
+    will-change: transform;
   }
   .animate-orbit-3 {
-    animation: orbit-spin-forward 52s linear infinite;
+    animation: orbit-spin-forward 32s linear infinite;
+    will-change: transform;
   }
   .animate-orbit-3-face {
-    animation: orbit-face-reverse 52s linear infinite;
+    animation: orbit-face-reverse 32s linear infinite;
+    will-change: transform;
   }
 
   /* Rotating light around the video (from ironleadagency.com) */
@@ -182,6 +188,17 @@
   @keyframes rim-spin {
     to {
       transform: rotate(1turn);
+    }
+  }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
     }
   }
 
