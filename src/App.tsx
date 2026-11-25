@@ -31,6 +31,7 @@ import {
   ShieldCheck,
   UserCheck,
   Play,
+  Send,
 } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { HeroOrbits } from './HeroOrbits';
@@ -768,28 +769,28 @@ const testimonials = [
 
 const faqs = [
   {
-    q: 'Which platforms do you manage?',
-    a: 'Google Ads (Search, Performance Max, Shopping, YouTube, Display), Meta Ads (Facebook & Instagram), LinkedIn Ads, TikTok Ads, X (Twitter) Ads and Bing Ads — plus full conversion tracking across all of them.',
+    q: 'What do you do?',
+    a: 'I manage Google Ads (Search, Performance Max, Shopping, YouTube), Local Service Ads, Meta (Facebook & Instagram) Ads, LinkedIn Ads, conversion tracking, and lead tracking. I handle the setup, ongoing optimization, and reporting so businesses can focus on their customers instead of running campaigns.',
   },
   {
-    q: 'What is your experience?',
-    a: 'Over 3 years in paid media. I previously managed 15 clients and 40+ campaigns at BD Calling IT (11 repeat clients), and I was a Senior Executive at PPC Rockers (ended June 2026) managing 5 clients and 10+ campaigns (4 repeat clients).',
+    q: 'Do you work white-label for other agencies?',
+    a: 'Yes. I work behind the scenes as a white-label fulfillment partner for agencies, or directly with businesses. Agencies keep the client relationship while I handle the execution and campaign management.',
   },
   {
-    q: 'Which industries do you work in?',
-    a: 'E-commerce, Healthcare, SaaS, Real Estate, Finance, Fine Arts, Consumer Goods and Biotech — across both international and local markets.',
+    q: 'How will I know what is working?',
+    a: 'You get regular, plain-English reporting on what is running and what it is producing. With proper conversion and lead tracking in place, calls, form fills, and purchases are tied back to the exact campaign and keyword that generated them.',
   },
   {
-    q: 'Do you set up conversion tracking?',
-    a: 'Yes. I handle Pixel setup, Google Tag Manager, Conversions API, server-side tracking and custom event tracking so your data is accurate and actionable.',
-  },
-  {
-    q: 'How do you report on performance?',
-    a: 'Regular, detailed reports with actionable insights — spend, ROAS, CPL, conversions and what we changed. No jargon, just results.',
+    q: 'Who will manage my account?',
+    a: 'You work directly with me — Ahsanul Haque Hridoy — an experienced paid media specialist with 4+ years of hands-on ad spend management, not a ticket queue or a rotating cast of junior reps.',
   },
   {
     q: 'How do we get started?',
-    a: 'Send a message through the form below. I will review your account and propose a custom strategy for your business — no obligation.',
+    a: 'Send your details with the quote form below. I will review your current setup, connect your accounts, and get campaigns live without disrupting what is already working, then optimize and report on a regular cadence.',
+  },
+  {
+    q: 'Do you set up conversion tracking and Pixel?',
+    a: 'Yes. I handle server-side tracking, Google Tag Manager (GTM), Meta Conversions API (CAPI), and custom event tracking so your data is accurate and platforms get the signal they need to optimize.',
   },
 ];
 
@@ -926,6 +927,17 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
           <div className="mt-8 flex flex-wrap items-center gap-3.5">
             <a
               href="#contact"
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('contact');
+                if (el) {
+                  el.scrollIntoView({ behavior: 'smooth' });
+                  setTimeout(() => {
+                    const input = document.getElementById('lf-name');
+                    if (input) input.focus();
+                  }, 650);
+                }
+              }}
               className="reveal reveal-up reveal-delay-250 group inline-flex items-center gap-2 rounded-xl bg-amber-400 px-6 py-3.5 text-sm font-bold text-slate-950 shadow-[0_0_25px_rgba(251,191,36,0.35)] transition-all duration-200 hover:bg-amber-300 hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] hover:scale-[1.02]"
             >
               Get a Free Quote
@@ -2289,23 +2301,26 @@ function FAQ() {
     <section id="faq" className="py-20 md:py-28">
       <div className="mx-auto max-w-3xl px-5">
         <div className="text-center">
-          <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">FAQ</p>
-          <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-            Questions, answered.
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">FAQ</p>
+          <h2 className="mt-2.5 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl lg:text-[42px]">
+            Common questions
           </h2>
+          <p className="mt-3 text-base text-slate-400 max-w-lg mx-auto">
+            Quick answers about how I work, who manages your campaigns, and how we scale your growth.
+          </p>
         </div>
         <div className="mt-10 space-y-3">
           {faqs.map((f, i) => {
             const isOpen = open === i;
             return (
-              <div key={f.q} className={`overflow-hidden rounded-2xl border bg-white/5 backdrop-blur transition ${isOpen ? 'border-brand-400/40' : 'border-white/15'}`}>
-                <button onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left">
+              <div key={f.q} className={`overflow-hidden rounded-2xl border bg-white/5 backdrop-blur transition ${isOpen ? 'border-amber-400/40 shadow-[0_0_20px_rgba(251,191,36,0.1)]' : 'border-white/10'}`}>
+                <button onClick={() => setOpen(isOpen ? null : i)} className="flex w-full items-center justify-between gap-4 px-5 py-4 text-left cursor-pointer">
                   <span className="font-display font-semibold text-white">{f.q}</span>
-                  <ChevronDown className={`h-5 w-5 shrink-0 text-brand-400 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+                  <ChevronDown className={`h-5 w-5 shrink-0 text-amber-400 transition-transform duration-300 ${isOpen ? 'rotate-180' : ''}`} />
                 </button>
                 <div className={`grid transition-all duration-300 ${isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
-                    <p className="px-5 pb-5 text-[15px] leading-relaxed text-slate-400">{f.a}</p>
+                    <p className="px-5 pb-5 text-[15px] leading-relaxed text-slate-300">{f.a}</p>
                   </div>
                 </div>
               </div>
@@ -2317,141 +2332,316 @@ function FAQ() {
   );
 }
 
-// ─── Contact ───────────────────────────────────────────────────────────────
+// ─── Contact (Get a Free Quote) ───────────────────────────────────────────
+
+const QUOTE_SERVICES = [
+  'Google Ads',
+  'Local Service Ads',
+  'Meta & Social Ads',
+  'SEO Management',
+  'Google Business Profile',
+  'Conversion Tracking',
+  'Website',
+  'Not sure yet',
+];
 
 function Contact() {
+  const [formData, setFormData] = useState({
+    name: '',
+    business: '',
+    email: '',
+    phone: '',
+    website: '',
+    trade: '',
+    message: '',
+  });
+  const [selectedServices, setSelectedServices] = useState<string[]>(['Google Ads']);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitted, setSubmitted] = useState(false);
+
+  const toggleService = (srv: string) => {
+    setSelectedServices((prev) =>
+      prev.includes(srv) ? prev.filter((s) => s !== srv) : [...prev, srv]
+    );
+  };
+
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSubmit = async (e: FormEvent) => {
+    e.preventDefault();
+    setIsSubmitting(true);
+
+    try {
+      if (supabase) {
+        await supabase.from('quote_leads').insert([
+          {
+            name: formData.name,
+            business_name: formData.business,
+            email: formData.email,
+            phone: formData.phone,
+            website: formData.website || null,
+            trade: formData.trade || null,
+            services: selectedServices,
+            message: formData.message || null,
+            created_at: new Date().toISOString(),
+          },
+        ]).then(() => {}).catch(() => {});
+      }
+    } catch {
+      // fallback
+    }
+
+    // Also store in localStorage
+    try {
+      const stored = JSON.parse(window.localStorage.getItem('quote_submissions') || '[]');
+      stored.push({ ...formData, services: selectedServices, submittedAt: new Date().toISOString() });
+      window.localStorage.setItem('quote_submissions', JSON.stringify(stored));
+    } catch {}
+
+    setIsSubmitting(false);
+    setSubmitted(true);
+  };
+
+  const whatsappMessage = encodeURIComponent(
+    `Hi Ahsanul, I would like to get a quote!\n\nName: ${formData.name}\nBusiness: ${formData.business}\nPhone: ${formData.phone}\nEmail: ${formData.email}\nServices: ${selectedServices.join(', ')}\nNotes: ${formData.message}`
+  );
+
   return (
-    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-28 bg-slate-950">
-      <div className="absolute inset-0 bg-grid-dark" />
-      <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-emerald-500/20 blur-3xl" />
-      <div className="absolute -right-40 bottom-0 h-96 w-96 rounded-full bg-brand-600/15 blur-3xl" />
+    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-28 bg-[#070e1a]">
+      <span id="schedule" aria-hidden="true" />
+      <div className="absolute inset-0 bg-grid-dark opacity-35" />
+      <div className="absolute left-1/4 top-1/4 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-amber-400/[0.04] blur-3xl pointer-events-none" />
+      <div className="absolute right-1/4 bottom-1/4 w-[500px] h-[500px] rounded-full bg-blue-600/[0.05] blur-3xl pointer-events-none" />
 
-      <div className="relative z-10 mx-auto max-w-4xl px-5 text-center">
-        <p className="text-sm font-semibold uppercase tracking-wider text-brand-400">Get in touch</p>
-        <h2 className="mt-2 font-display text-3xl font-extrabold tracking-tight text-white sm:text-4xl">
-          Ready to scale your ads?
-        </h2>
-        <p className="mx-auto mt-4 max-w-xl text-slate-400">
-          Message me on WhatsApp and I'll personally review your account and propose a custom strategy — no obligation.
-        </p>
+      <div className="relative z-10 mx-auto max-w-4xl px-5">
+        <div className="text-center max-w-2xl mx-auto mb-10">
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">Get Started</div>
+          <h2 className="mt-2.5 font-display text-3xl sm:text-4xl lg:text-[44px] font-extrabold tracking-tight text-white leading-[1.15]">
+            Get a free quote
+          </h2>
+          <p className="mt-3.5 text-base sm:text-lg text-slate-300 leading-relaxed">
+            Tell us a bit about your business and what you're after. We'll get back to you within one business day.
+          </p>
+        </div>
 
-        {/* Primary WhatsApp CTA */}
-        <div className="mt-10 flex justify-center">
+        {/* Lead Card Container */}
+        <div className="mx-auto max-w-[820px] rounded-2xl border border-white/10 bg-[#0d1829]/90 backdrop-blur-xl p-6 sm:p-10 shadow-[0_20px_60px_rgba(0,0,0,0.5)]">
+          {submitted ? (
+            <div className="text-center py-10 px-4 animate-in fade-in zoom-in-95 duration-500">
+              <div className="w-16 h-16 mx-auto mb-5 rounded-full bg-amber-400/15 border border-amber-400/40 text-amber-400 grid place-items-center shadow-[0_0_25px_rgba(251,191,36,0.25)]">
+                <CheckCircle2 className="h-8 w-8 text-amber-400" />
+              </div>
+              <h3 className="font-display text-2xl sm:text-3xl font-bold text-white mb-3">
+                Thanks, we've got it
+              </h3>
+              <p className="text-slate-300 max-w-md mx-auto text-base leading-relaxed mb-6">
+                We'll be in touch within one business day. Need us sooner? Message on WhatsApp or email.
+              </p>
+              <div className="flex flex-wrap items-center justify-center gap-3 mb-6">
+                <a
+                  href={`${WHATSAPP}?text=${whatsappMessage}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 px-6 py-3 text-sm font-bold text-white transition shadow-lg"
+                >
+                  <MessageCircle className="h-4 w-4" /> Message on WhatsApp
+                </a>
+                <a
+                  href={`mailto:${EMAIL}`}
+                  className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 px-6 py-3 text-sm font-semibold text-white transition"
+                >
+                  <Mail className="h-4 w-4" /> Email directly
+                </a>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSubmitted(false)}
+                className="text-xs uppercase tracking-wider font-bold text-slate-400 hover:text-white transition-colors cursor-pointer"
+              >
+                ← Send another request
+              </button>
+            </div>
+          ) : (
+            <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
+              {/* Your name */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lf-name" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Your name <span className="text-amber-400">*</span>
+                </label>
+                <input
+                  id="lf-name"
+                  name="name"
+                  type="text"
+                  required
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="John Doe"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+              </div>
+
+              {/* Business name */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lf-business" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Business name <span className="text-amber-400">*</span>
+                </label>
+                <input
+                  id="lf-business"
+                  name="business"
+                  type="text"
+                  required
+                  value={formData.business}
+                  onChange={handleChange}
+                  placeholder="Acme Plumbing & HVAC"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+              </div>
+
+              {/* Email */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lf-email" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Email <span className="text-amber-400">*</span>
+                </label>
+                <input
+                  id="lf-email"
+                  name="email"
+                  type="email"
+                  required
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="john@example.com"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+              </div>
+
+              {/* Phone */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lf-phone" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Phone <span className="text-amber-400">*</span>
+                </label>
+                <input
+                  id="lf-phone"
+                  name="phone"
+                  type="tel"
+                  required
+                  value={formData.phone}
+                  onChange={handleChange}
+                  placeholder="+1 (555) 000-0000"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+              </div>
+
+              {/* Website (optional) */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lf-website" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Website <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  id="lf-website"
+                  name="website"
+                  type="text"
+                  value={formData.website}
+                  onChange={handleChange}
+                  placeholder="yourbusiness.com"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+              </div>
+
+              {/* Type of business (optional) */}
+              <div className="flex flex-col gap-2">
+                <label htmlFor="lf-trade" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Type of business <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <input
+                  id="lf-trade"
+                  name="trade"
+                  type="text"
+                  value={formData.trade}
+                  onChange={handleChange}
+                  placeholder="e.g. Plumber, Dentist, Roofer, E-commerce"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20"
+                />
+              </div>
+
+              {/* Services chips */}
+              <div className="sm:col-span-2 flex flex-col gap-2.5">
+                <label className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  What can we help with? <span className="text-slate-400 font-normal">(pick any)</span>
+                </label>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {QUOTE_SERVICES.map((srv) => {
+                    const isSelected = selectedServices.includes(srv);
+                    return (
+                      <button
+                        key={srv}
+                        type="button"
+                        onClick={() => toggleService(srv)}
+                        className={`rounded-xl px-3.5 py-2 text-xs sm:text-[13.5px] font-semibold transition-all duration-200 border cursor-pointer ${
+                          isSelected
+                            ? 'border-amber-400 bg-amber-400/15 text-white shadow-[0_0_12px_rgba(251,191,36,0.25)]'
+                            : 'border-white/10 bg-slate-950/60 text-slate-300 hover:border-white/25 hover:text-white'
+                        }`}
+                      >
+                        {srv}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Anything else? */}
+              <div className="sm:col-span-2 flex flex-col gap-2">
+                <label htmlFor="lf-message" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                  Anything else? <span className="text-slate-400 font-normal">(optional)</span>
+                </label>
+                <textarea
+                  id="lf-message"
+                  name="message"
+                  rows={4}
+                  value={formData.message}
+                  onChange={handleChange}
+                  placeholder="Your goals, your budget, or what isn't working right now"
+                  className="w-full rounded-xl border border-white/10 bg-slate-950/60 px-4 py-3 text-sm sm:text-base text-white placeholder-slate-500 transition-all focus:border-amber-400 focus:outline-none focus:ring-2 focus:ring-amber-400/20 resize-y"
+                />
+              </div>
+
+              {/* Submit Action */}
+              <div className="sm:col-span-2 pt-2 flex flex-col sm:flex-row items-center gap-4 justify-between">
+                <button
+                  type="submit"
+                  disabled={isSubmitting}
+                  className="w-full sm:w-auto group inline-flex items-center justify-center gap-2.5 rounded-xl bg-amber-400 px-8 py-4 text-base font-bold text-slate-950 shadow-[0_0_25px_rgba(251,191,36,0.35)] transition-all duration-200 hover:bg-amber-300 hover:shadow-[0_0_35px_rgba(251,191,36,0.5)] hover:scale-[1.02] cursor-pointer"
+                >
+                  <Send className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+                  {isSubmitting ? 'Sending...' : 'Get My Free Quote'}
+                </button>
+                <span className="text-xs text-slate-400 text-center sm:text-right">
+                  No spam. We only use this to reply to you.
+                </span>
+              </div>
+            </form>
+          )}
+        </div>
+
+        {/* WhatsApp & Email Quick Links */}
+        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
           <a
             href={WHATSAPP}
             target="_blank"
             rel="noopener noreferrer"
-            className="group inline-flex items-center gap-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-emerald-600 px-8 py-5 text-lg font-bold text-white shadow-xl transition hover:from-emerald-600 hover:to-emerald-700 hover:shadow-emerald-500/30"
+            className="inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/20 hover:border-emerald-500/50"
           >
-            <span className="grid h-14 w-14 place-items-center rounded-xl bg-white/20">
-              <MessageCircle className="h-7 w-7" />
-            </span>
-            <div className="text-left">
-              <span className="block text-2xl">Chat on WhatsApp</span>
-              <span className="block text-sm font-normal text-emerald-100">+880 1785 778 309</span>
-            </div>
-            <ArrowRight className="h-6 w-6 transition-transform group-hover:translate-x-1" />
+            <MessageCircle className="h-4 w-4" /> Chat on WhatsApp ({PHONE_DISPLAY})
           </a>
-        </div>
-
-        <p className="mt-6 text-sm text-slate-500">Available for quick response 9 AM — 10 PM (BDT)</p>
-
-        {/* Secondary contact methods */}
-        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           <a
             href={`mailto:${EMAIL}`}
-            className="group flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-5 text-left backdrop-blur transition hover:border-brand-400/40"
+            className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
           >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-brand-500/20 text-brand-400">
-              <Mail className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-white">Email</p>
-              <p className="text-sm text-slate-400">{EMAIL}</p>
-            </div>
+            <Mail className="h-4 w-4 text-amber-400" /> {EMAIL}
           </a>
-
-          <a
-            href={LINKEDIN}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-5 text-left backdrop-blur transition hover:border-brand-400/40"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-blue-500/20 text-blue-400">
-              <Linkedin className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-white">LinkedIn</p>
-              <p className="text-sm text-slate-400">Connect professionally</p>
-            </div>
-          </a>
-
-          <a
-            href={UPWORK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-5 text-left backdrop-blur transition hover:border-brand-400/40"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-emerald-500/20 text-emerald-400">
-              <Briefcase className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-white">Upwork</p>
-              <p className="text-sm text-slate-400">Hire via platform</p>
-            </div>
-          </a>
-
-          <a
-            href={FIVERR}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-5 text-left backdrop-blur transition hover:border-brand-400/40"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-green-500/20 text-green-400">
-              <Zap className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-white">Fiverr</p>
-              <p className="text-sm text-slate-400">Quick gig orders</p>
-            </div>
-          </a>
-
-          <a
-            href={BEHANCE}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-5 text-left backdrop-blur transition hover:border-brand-400/40"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-pink-500/20 text-pink-400">
-              <Globe className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-white">Behance</p>
-              <p className="text-sm text-slate-400">Case studies</p>
-            </div>
-          </a>
-
-          <a
-            href={FACEBOOK}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="group flex items-center gap-4 rounded-2xl border border-white/15 bg-white/5 p-5 text-left backdrop-blur transition hover:border-brand-400/40"
-          >
-            <span className="grid h-12 w-12 place-items-center rounded-xl bg-blue-600/20 text-blue-400">
-              <Megaphone className="h-5 w-5" />
-            </span>
-            <div>
-              <p className="font-display font-bold text-white">Facebook</p>
-              <p className="text-sm text-slate-400">Follow & message</p>
-            </div>
-          </a>
-        </div>
-
-        {/* Testimonial */}
-        <div className="mx-auto mt-14 max-w-lg rounded-2xl border border-emerald-500/20 bg-emerald-500/10 p-6 text-left">
-          <Quote className="h-8 w-8 text-emerald-500/40" />
-          <p className="mt-2 text-white">"61 qualified leads in the first 7 days — the campaign paid for itself immediately."</p>
-          <p className="mt-3 text-sm text-emerald-300">— Lead generation client</p>
         </div>
       </div>
     </section>
