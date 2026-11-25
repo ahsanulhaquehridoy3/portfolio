@@ -933,7 +933,7 @@ function Hero({ content }: { content: SiteContent['hero'] }) {
                 if (el) {
                   el.scrollIntoView({ behavior: 'smooth' });
                   setTimeout(() => {
-                    const input = document.getElementById('lf-name');
+                    const input = document.getElementById('contact-lf-name') || document.getElementById('lf-name');
                     if (input) input.focus();
                   }, 650);
                 }
@@ -1071,48 +1071,40 @@ function VideoIntro() {
           </p>
         </div>
 
-        {/* 2-column: video LEFT, HeroOrbits RIGHT */}
-        <div className="mt-12 md:mt-16 grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-center">
-
-          <div className="reveal reveal-left w-full max-w-xl mx-auto lg:max-w-none">
-            <div className="vsl-frame w-full">
-              {isPlaying ? (
-                <div className="aspect-video w-full overflow-hidden rounded-[13px] bg-black">
-                  <iframe
-                    className="h-full w-full border-0"
-                    src="https://www.youtube.com/embed/wdVo_t7B6UM?autoplay=1&rel=0"
-                    title="See how we drive results"
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                    allowFullScreen
-                  />
+        {/* Big Centered Video */}
+        <div className="reveal reveal-up mt-10 md:mt-14 max-w-4xl mx-auto w-full">
+          <div className="vsl-frame w-full shadow-2xl">
+            {isPlaying ? (
+              <div className="aspect-video w-full overflow-hidden rounded-[15px] bg-black">
+                <iframe
+                  className="h-full w-full border-0"
+                  src="https://www.youtube.com/embed/wdVo_t7B6UM?autoplay=1&rel=0"
+                  title="See how we drive results"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allowFullScreen
+                />
+              </div>
+            ) : (
+              <div
+                onClick={() => setIsPlaying(true)}
+                className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[15px] bg-slate-900 flex items-center justify-center transition-all duration-300"
+                style={{
+                  backgroundImage: `linear-gradient(rgba(10, 20, 35, 0.4), rgba(10, 20, 35, 0.65)), url('https://img.youtube.com/vi/wdVo_t7B6UM/maxresdefault.jpg')`,
+                  backgroundPosition: 'center',
+                  backgroundSize: 'cover',
+                  backgroundRepeat: 'no-repeat',
+                }}
+              >
+                <div className="relative z-10 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border-2 border-white/40 bg-white/15 backdrop-blur-md shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-400 group-hover:shadow-[0_0_35px_rgba(250,204,21,0.6)]">
+                  <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-white text-white transition-colors duration-300 group-hover:fill-slate-950 group-hover:text-slate-950 ml-1" />
                 </div>
-              ) : (
-                <div
-                  onClick={() => setIsPlaying(true)}
-                  className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[13px] bg-slate-900 flex items-center justify-center transition-all duration-300"
-                  style={{
-                    backgroundImage: `linear-gradient(rgba(10, 20, 35, 0.4), rgba(10, 20, 35, 0.65)), url('https://img.youtube.com/vi/wdVo_t7B6UM/maxresdefault.jpg')`,
-                    backgroundPosition: 'center',
-                    backgroundSize: 'cover',
-                    backgroundRepeat: 'no-repeat',
-                  }}
-                >
-                  <div className="relative z-10 flex h-20 w-20 sm:h-24 sm:w-24 items-center justify-center rounded-full border-2 border-white/40 bg-white/15 backdrop-blur-md shadow-2xl transition-all duration-300 group-hover:scale-110 group-hover:border-amber-400 group-hover:bg-amber-400 group-hover:shadow-[0_0_35px_rgba(250,204,21,0.6)]">
-                    <Play className="h-8 w-8 sm:h-10 sm:w-10 fill-white text-white transition-colors duration-300 group-hover:fill-slate-950 group-hover:text-slate-950 ml-1" />
-                  </div>
-                  <div className="absolute bottom-5 left-0 right-0 z-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-white/90 drop-shadow">
-                    <Play className="h-3 w-3 fill-amber-400 text-amber-400" />
-                    <span>3 min watch</span>
-                  </div>
+                <div className="absolute bottom-5 left-0 right-0 z-10 flex items-center justify-center gap-1.5 text-xs sm:text-sm font-semibold text-white/90 drop-shadow">
+                  <Play className="h-3 w-3 fill-amber-400 text-amber-400" />
+                  <span>3 min watch</span>
                 </div>
-              )}
-            </div>
+              </div>
+            )}
           </div>
-
-          <div className="reveal reveal-right flex justify-center items-center w-full">
-            <HeroOrbits />
-          </div>
-
         </div>
       </div>
     </section>
@@ -2345,7 +2337,19 @@ const QUOTE_SERVICES = [
   'Not sure yet',
 ];
 
-function Contact() {
+function QuoteFormSection({
+  id = 'contact',
+  badge = 'Get Started',
+  title = 'Get a free quote',
+  subtitle = "Tell us a bit about your business and what you're after. We'll get back to you within one business day.",
+  showDirectLinks = true,
+}: {
+  id?: string;
+  badge?: string;
+  title?: string;
+  subtitle?: string;
+  showDirectLinks?: boolean;
+}) {
   const [formData, setFormData] = useState({
     name: '',
     business: '',
@@ -2394,7 +2398,6 @@ function Contact() {
       // fallback
     }
 
-    // Also store in localStorage
     try {
       const stored = JSON.parse(window.localStorage.getItem('quote_submissions') || '[]');
       stored.push({ ...formData, services: selectedServices, submittedAt: new Date().toISOString() });
@@ -2410,20 +2413,20 @@ function Contact() {
   );
 
   return (
-    <section id="contact" className="relative isolate overflow-hidden py-20 md:py-28 bg-[#070e1a]">
-      <span id="schedule" aria-hidden="true" />
+    <section id={id} className="relative isolate overflow-hidden py-20 md:py-28 bg-[#070e1a]">
+      {id === 'contact' && <span id="schedule" aria-hidden="true" />}
       <div className="absolute inset-0 bg-grid-dark opacity-35" />
       <div className="absolute left-1/4 top-1/4 -translate-y-1/2 w-[550px] h-[550px] rounded-full bg-amber-400/[0.04] blur-3xl pointer-events-none" />
       <div className="absolute right-1/4 bottom-1/4 w-[500px] h-[500px] rounded-full bg-blue-600/[0.05] blur-3xl pointer-events-none" />
 
       <div className="relative z-10 mx-auto max-w-4xl px-5">
         <div className="text-center max-w-2xl mx-auto mb-10">
-          <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">Get Started</div>
+          <div className="text-xs font-bold uppercase tracking-[0.2em] text-amber-400">{badge}</div>
           <h2 className="mt-2.5 font-display text-3xl sm:text-4xl lg:text-[44px] font-extrabold tracking-tight text-white leading-[1.15]">
-            Get a free quote
+            {title}
           </h2>
           <p className="mt-3.5 text-base sm:text-lg text-slate-300 leading-relaxed">
-            Tell us a bit about your business and what you're after. We'll get back to you within one business day.
+            {subtitle}
           </p>
         </div>
 
@@ -2468,11 +2471,11 @@ function Contact() {
             <form onSubmit={handleSubmit} className="grid grid-cols-1 sm:grid-cols-2 gap-5 sm:gap-6">
               {/* Your name */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="lf-name" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-name`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Your name <span className="text-amber-400">*</span>
                 </label>
                 <input
-                  id="lf-name"
+                  id={`${id}-lf-name`}
                   name="name"
                   type="text"
                   required
@@ -2485,11 +2488,11 @@ function Contact() {
 
               {/* Business name */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="lf-business" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-business`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Business name <span className="text-amber-400">*</span>
                 </label>
                 <input
-                  id="lf-business"
+                  id={`${id}-lf-business`}
                   name="business"
                   type="text"
                   required
@@ -2502,11 +2505,11 @@ function Contact() {
 
               {/* Email */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="lf-email" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-email`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Email <span className="text-amber-400">*</span>
                 </label>
                 <input
-                  id="lf-email"
+                  id={`${id}-lf-email`}
                   name="email"
                   type="email"
                   required
@@ -2519,11 +2522,11 @@ function Contact() {
 
               {/* Phone */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="lf-phone" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-phone`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Phone <span className="text-amber-400">*</span>
                 </label>
                 <input
-                  id="lf-phone"
+                  id={`${id}-lf-phone`}
                   name="phone"
                   type="tel"
                   required
@@ -2536,11 +2539,11 @@ function Contact() {
 
               {/* Website (optional) */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="lf-website" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-website`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Website <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <input
-                  id="lf-website"
+                  id={`${id}-lf-website`}
                   name="website"
                   type="text"
                   value={formData.website}
@@ -2552,11 +2555,11 @@ function Contact() {
 
               {/* Type of business (optional) */}
               <div className="flex flex-col gap-2">
-                <label htmlFor="lf-trade" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-trade`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Type of business <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <input
-                  id="lf-trade"
+                  id={`${id}-lf-trade`}
                   name="trade"
                   type="text"
                   value={formData.trade}
@@ -2594,11 +2597,11 @@ function Contact() {
 
               {/* Anything else? */}
               <div className="sm:col-span-2 flex flex-col gap-2">
-                <label htmlFor="lf-message" className="text-xs sm:text-[13px] font-bold text-slate-200">
+                <label htmlFor={`${id}-lf-message`} className="text-xs sm:text-[13px] font-bold text-slate-200">
                   Anything else? <span className="text-slate-400 font-normal">(optional)</span>
                 </label>
                 <textarea
-                  id="lf-message"
+                  id={`${id}-lf-message`}
                   name="message"
                   rows={4}
                   value={formData.message}
@@ -2627,24 +2630,38 @@ function Contact() {
         </div>
 
         {/* WhatsApp & Email Quick Links */}
-        <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
-          <a
-            href={WHATSAPP}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/20 hover:border-emerald-500/50"
-          >
-            <MessageCircle className="h-4 w-4" /> Chat on WhatsApp ({PHONE_DISPLAY})
-          </a>
-          <a
-            href={`mailto:${EMAIL}`}
-            className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
-          >
-            <Mail className="h-4 w-4 text-amber-400" /> {EMAIL}
-          </a>
-        </div>
+        {showDirectLinks && (
+          <div className="mt-12 flex flex-col sm:flex-row items-center justify-center gap-4">
+            <a
+              href={WHATSAPP}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2.5 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-6 py-3 text-sm font-semibold text-emerald-400 transition hover:bg-emerald-500/20 hover:border-emerald-500/50"
+            >
+              <MessageCircle className="h-4 w-4" /> Chat on WhatsApp ({PHONE_DISPLAY})
+            </a>
+            <a
+              href={`mailto:${EMAIL}`}
+              className="inline-flex items-center gap-2.5 rounded-full border border-white/15 bg-white/5 px-6 py-3 text-sm font-semibold text-slate-300 transition hover:bg-white/10 hover:text-white"
+            >
+              <Mail className="h-4 w-4 text-amber-400" /> {EMAIL}
+            </a>
+          </div>
+        )}
       </div>
     </section>
+  );
+}
+
+function Contact() {
+  return (
+    <QuoteFormSection
+      id="contact"
+      badge="Get Started"
+      title="Get a free quote"
+      subtitle="Tell us a bit about your business and what you're after. We'll get back to you within one business day."
+      showDirectLinks={true}
+    />
   );
 }
 
@@ -2875,6 +2892,13 @@ export default function App() {
         <ProcessSection />
         <Services />
         <Work projects={projects} />
+        <QuoteFormSection
+          id="work-quote"
+          badge="Get Started"
+          title="Get a free quote for your project"
+          subtitle="Tell us a bit about your business and what you're after. We'll get back to you within one business day."
+          showDirectLinks={false}
+        />
         <WhyMe />
         <Industries />
         <Reviews />
