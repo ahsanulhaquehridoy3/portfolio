@@ -2337,18 +2337,78 @@ const QUOTE_SERVICES = [
   'Not sure yet',
 ];
 
+const SOCIAL_PLATFORMS = [
+  {
+    name: 'Behance',
+    url: BEHANCE,
+    icon: (
+      <svg className="h-4 w-4 fill-[#0057ff]" viewBox="0 0 24 24">
+        <path d="M22 7h-7v-2h7v2zm1.726 10c-.442 1.297-2.029 3-4.971 3-3.469 0-5.755-2.502-5.755-6.082 0-3.523 2.277-6.079 5.672-6.079 3.541 0 5.485 2.503 5.485 6.079 0 .432-.053.864-.09 1.077h-8.08c.174 1.83 1.341 2.871 3.036 2.871 1.365 0 2.228-.68 2.627-1.428l2.076.562zm-7.795-3.666h5.275c-.174-1.574-1.289-2.427-2.617-2.427-1.42 0-2.477.85-2.658 2.427zm-11.931-8.334h5.811c2.25 0 3.738 1.135 3.738 3.125 0 1.234-.633 2.197-1.674 2.699 1.404.537 2.125 1.737 2.125 3.292 0 2.37-1.748 3.884-4.223 3.884h-5.777v-13zm3.178 4.969h2.348c.959 0 1.559-.447 1.559-1.246 0-.853-.664-1.258-1.594-1.258h-2.313v2.504zm0 5.438h2.527c1.074 0 1.771-.479 1.771-1.391 0-.961-.758-1.449-1.787-1.449h-2.511v2.84z" />
+      </svg>
+    ),
+    hoverBorder: 'hover:border-[#0057ff]/60 hover:bg-[#0057ff]/10',
+    hoverText: 'hover:text-[#388bfd]',
+  },
+  {
+    name: 'LinkedIn',
+    url: LINKEDIN,
+    icon: (
+      <svg className="h-4 w-4 fill-[#0a66c2]" viewBox="0 0 24 24">
+        <path d="M19 3a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h14m-.5 15.5v-5.3a3.26 3.26 0 0 0-3.26-3.26c-.85 0-1.84.52-2.28 1.3v-1.11h-2.79v8.37h2.79v-4.93c0-.77.62-1.4 1.39-1.4a1.4 1.4 0 0 1 1.4 1.4v4.93h2.75M6.46 10.9h2.77v8.37H6.46v-8.37M7.85 6.45a1.61 1.61 0 1 0 1.61 1.61 1.61 1.61 0 0 0-1.61-1.61z" />
+      </svg>
+    ),
+    hoverBorder: 'hover:border-[#0a66c2]/60 hover:bg-[#0a66c2]/10',
+    hoverText: 'hover:text-[#388bfd]',
+  },
+  {
+    name: 'Facebook',
+    url: FACEBOOK,
+    icon: (
+      <svg className="h-4 w-4 fill-[#1877f2]" viewBox="0 0 24 24">
+        <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z" />
+      </svg>
+    ),
+    hoverBorder: 'hover:border-[#1877f2]/60 hover:bg-[#1877f2]/10',
+    hoverText: 'hover:text-[#58a6ff]',
+  },
+  {
+    name: 'Upwork',
+    url: UPWORK,
+    icon: (
+      <svg className="h-4 w-4 fill-[#14a800]" viewBox="0 0 24 24">
+        <path d="M18.561 13.158c-1.102 0-2.135-.467-3.074-1.229l.228-1.076.008-.042c.207-1.143.849-3.06 2.839-3.06 1.492 0 2.703 1.212 2.703 2.703-.001 1.489-1.212 2.704-2.704 2.704zm0-8.14c-3.149 0-5.066 2.226-5.618 4.237-.872-1.327-1.503-2.923-1.849-4.577H8.38v5.823c0 1.954-1.59 3.544-3.544 3.544-1.954 0-3.544-1.59-3.544-3.544V4.678H0v5.823c0 3.448 2.804 6.252 6.252 6.252 2.054 0 3.89-.994 5.034-2.529.563 1.348 1.444 2.508 2.662 3.279l-1.632 7.747h2.784l1.17-5.556c.725.184 1.483.284 2.291.284 3.759 0 6.818-3.059 6.818-6.818 0-3.76-3.059-6.819-6.818-6.819z" />
+      </svg>
+    ),
+    hoverBorder: 'hover:border-[#14a800]/60 hover:bg-[#14a800]/10',
+    hoverText: 'hover:text-[#2ecc71]',
+  },
+  {
+    name: 'Fiverr',
+    url: FIVERR,
+    icon: (
+      <svg className="h-4 w-4 fill-[#1dbf73]" viewBox="0 0 24 24">
+        <path d="M23.003 13.568v6.43h-3.412v-6.332c0-1.428-.465-2.227-1.656-2.227-1.169 0-1.876.82-1.876 2.276v6.283H12.65v-6.332c0-1.428-.466-2.227-1.657-2.227-1.169 0-1.876.82-1.876 2.276v6.283H5.706V8.924h3.411v1.658c.842-1.157 2.072-1.815 3.535-1.815 1.705 0 2.946.853 3.44 2.28.84-1.378 2.16-2.28 3.87-2.28 2.046 0 3.041 1.438 3.041 4.801zM4.148 5.753a2.074 2.074 0 1 1-4.148 0 2.074 2.074 0 0 1 4.148 0zm-.37 3.171v11.074H.367V8.924h3.411z" />
+      </svg>
+    ),
+    hoverBorder: 'hover:border-[#1dbf73]/60 hover:bg-[#1dbf73]/10',
+    hoverText: 'hover:text-[#1dbf73]',
+  },
+];
+
 function QuoteFormSection({
   id = 'contact',
   badge = 'Get Started',
   title = 'Get a free quote',
   subtitle = "Tell us a bit about your business and what you're after. We'll get back to you within one business day.",
   showDirectLinks = true,
+  showSocialPlatforms = false,
 }: {
   id?: string;
   badge?: string;
   title?: string;
   subtitle?: string;
   showDirectLinks?: boolean;
+  showSocialPlatforms?: boolean;
 }) {
   const [formData, setFormData] = useState({
     name: '',
@@ -2648,6 +2708,32 @@ function QuoteFormSection({
             </a>
           </div>
         )}
+
+        {/* Social Platform Badges with Logos (Behance, LinkedIn, Facebook, Upwork, Fiverr, Email) */}
+        {showSocialPlatforms && (
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            {SOCIAL_PLATFORMS.map((plat) => (
+              <a
+                key={plat.name}
+                href={plat.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={`group inline-flex items-center gap-2 rounded-2xl border border-white/15 bg-[#0b1220]/80 px-4 py-2.5 text-sm font-semibold text-slate-300 shadow-md backdrop-blur transition-all duration-200 ${plat.hoverBorder} ${plat.hoverText} hover:scale-[1.03]`}
+              >
+                <span className="shrink-0 transition-transform group-hover:scale-110">{plat.icon}</span>
+                <span className="text-slate-200 group-hover:text-white">{plat.name}</span>
+                <ExternalLink className="h-3.5 w-3.5 text-slate-500 transition-colors group-hover:text-white" />
+              </a>
+            ))}
+            <a
+              href={`mailto:${EMAIL}`}
+              title={`Send email to ${EMAIL}`}
+              className="group grid h-10 w-10 place-items-center rounded-2xl border border-white/15 bg-[#0b1220]/80 text-slate-300 shadow-md backdrop-blur transition-all duration-200 hover:border-amber-400/50 hover:bg-amber-400/10 hover:text-amber-400 hover:scale-[1.03]"
+            >
+              <Mail className="h-4 w-4" />
+            </a>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -2661,6 +2747,7 @@ function Contact() {
       title="Get a free quote"
       subtitle="Tell us a bit about your business and what you're after. We'll get back to you within one business day."
       showDirectLinks={true}
+      showSocialPlatforms={true}
     />
   );
 }
