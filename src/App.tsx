@@ -1053,6 +1053,7 @@ function PlatformsMarquee() {
 
 function VideoIntro() {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [videoId, setVideoId] = useState('wdVo_t7B6UM');
 
   return (
     <section id="vsl" className="relative isolate overflow-hidden bg-slate-950 py-20 md:py-28">
@@ -1078,9 +1079,9 @@ function VideoIntro() {
               <div className="aspect-video w-full overflow-hidden rounded-[15px] bg-black">
                 <iframe
                   className="h-full w-full border-0"
-                  src="https://www.youtube.com/embed/wdVo_t7B6UM?autoplay=1&rel=0"
+                  src={`https://www.youtube.com/embed/${videoId}?autoplay=1&rel=0&modestbranding=1`}
                   title="See how we drive results"
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share; fullscreen"
                   allowFullScreen
                 />
               </div>
@@ -1089,7 +1090,7 @@ function VideoIntro() {
                 onClick={() => setIsPlaying(true)}
                 className="group relative aspect-video w-full cursor-pointer overflow-hidden rounded-[15px] bg-slate-900 flex items-center justify-center transition-all duration-300"
                 style={{
-                  backgroundImage: `linear-gradient(rgba(10, 20, 35, 0.4), rgba(10, 20, 35, 0.65)), url('https://img.youtube.com/vi/wdVo_t7B6UM/maxresdefault.jpg')`,
+                  backgroundImage: `linear-gradient(rgba(10, 20, 35, 0.4), rgba(10, 20, 35, 0.65)), url('https://img.youtube.com/vi/${videoId}/maxresdefault.jpg')`,
                   backgroundPosition: 'center',
                   backgroundSize: 'cover',
                   backgroundRepeat: 'no-repeat',
@@ -2994,6 +2995,14 @@ export default function App() {
         <Hero content={siteContent.hero} />
         <PlatformsMarquee />
         <VideoIntro />
+        <QuoteFormSection
+          id="video-quote"
+          badge="Get Started"
+          title="Get a free quote"
+          subtitle="Tell us a bit about your business and what you're after. We'll get back to you within one business day."
+          showDirectLinks={false}
+          showSocialPlatforms={false}
+        />
         <PlatformsSection />
         <About content={siteContent.about} />
         <ProcessSection />
