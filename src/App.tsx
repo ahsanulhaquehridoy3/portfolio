@@ -48,6 +48,21 @@ const UPWORK = 'https://www.upwork.com/freelancers/ahsanulgoogleads';
 const FIVERR = 'https://www.fiverr.com/s/bd1mmo1?utm_source=CopyLink_Mobile';
 const EMAIL = 'hridoy410103@gmail.com';
 
+declare global {
+  interface Window {
+    dataLayer?: Record<string, unknown>[];
+  }
+}
+
+function pushGTMEvent(eventName: string, params: Record<string, unknown> = {}) {
+  if (typeof window === 'undefined') return;
+  window.dataLayer = window.dataLayer || [];
+  window.dataLayer.push({
+    event: eventName,
+    ...params,
+  });
+}
+
 function useScrollRevealObserver(pathname?: string) {
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -2487,6 +2502,13 @@ function QuoteFormSection({
 
     setIsSubmitting(false);
     setSubmitted(true);
+
+    // 4. Push FormSubmited event to Google Tag Manager dataLayer
+    pushGTMEvent('FormSubmited', {
+      form_id: id,
+      services: selectedServices.join(', '),
+      business: formData.business,
+    });
   };
 
   const whatsappMessage = encodeURIComponent(
@@ -2887,6 +2909,33 @@ export default function App() {
   useEffect(() => {
     saveAdminPassword(adminPassword);
   }, [adminPassword]);
+
+  // Global GTM click tracking for WhatsApp & Call links
+  useEffect(() => {
+    const handleGlobalClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const anchor = target?.closest('a') as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute('href') || '';
+      const label = (anchor.textContent || '').trim();
+
+      if (href.includes('wa.me')) {
+        const isPrefilledMessage = href.includes('?text=');
+        pushGTMEvent(isPrefilledMessage ? 'Whatsappmessage' : 'WhatsappClick', {
+          link_url: href,
+          link_text: label,
+        });
+      } else if (href.startsWith('tel:')) {
+        pushGTMEvent('WhatsappCall', {
+          link_url: href,
+          link_text: label,
+        });
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+    return () => document.removeEventListener('click', handleGlobalClick);
+  }, []);
 
   const [isAdmin, setIsAdmin] = useState<boolean>(() => isAdminAuthenticated());
 
