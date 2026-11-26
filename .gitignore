@@ -21,3 +21,7 @@ dist-ssr
 *.sln
 *.sw?
 .env
+
+# PHP mailer with SMTP credentials — upload manually to cPanel, do NOT commit
+public/api/quote.php
+dist/api/quote.php

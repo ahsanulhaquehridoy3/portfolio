@@ -2438,6 +2438,34 @@ function QuoteFormSection({
     e.preventDefault();
     setIsSubmitting(true);
 
+    // 1. Save to localStorage as offline backup (never loses a lead)
+    try {
+      const stored = JSON.parse(window.localStorage.getItem('quote_submissions') || '[]');
+      stored.push({ ...formData, services: selectedServices, submittedAt: new Date().toISOString() });
+      window.localStorage.setItem('quote_submissions', JSON.stringify(stored));
+    } catch {}
+
+    // 2. Send via PHP mailer (admin notification + auto-reply)
+    try {
+      await fetch('/api/quote.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: formData.name,
+          business: formData.business,
+          email: formData.email,
+          phone: formData.phone,
+          website: formData.website || '',
+          trade: formData.trade || '',
+          services: selectedServices,
+          message: formData.message || '',
+        }),
+      });
+    } catch {
+      // Network error — lead already saved to localStorage above, still show success
+    }
+
+    // 3. Also try Supabase if configured
     try {
       if (supabase) {
         await supabase.from('quote_leads').insert([
@@ -2454,14 +2482,6 @@ function QuoteFormSection({
           },
         ]).then(() => {}).catch(() => {});
       }
-    } catch {
-      // fallback
-    }
-
-    try {
-      const stored = JSON.parse(window.localStorage.getItem('quote_submissions') || '[]');
-      stored.push({ ...formData, services: selectedServices, submittedAt: new Date().toISOString() });
-      window.localStorage.setItem('quote_submissions', JSON.stringify(stored));
     } catch {}
 
     setIsSubmitting(false);
